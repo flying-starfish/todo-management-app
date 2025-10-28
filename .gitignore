@@ -1,0 +1,35 @@
+# Node.js関連
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python関連
+__pycache__/
+*.pyc
+*.pyo
+*.env
+venv/  # 仮想環境を無視
+
+# フロントエンド関連
+frontend/node_modules/
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# バックエンド関連
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.production
+backend/venv/  # バックエンドの仮想環境を無視
+
+# 共通
+.DS_Store
+coverage/
+*.log
