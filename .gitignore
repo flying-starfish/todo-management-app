@@ -9,7 +9,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.env
-venv/  # 仮想環境を無視
+venv/
 
 # フロントエンド関連
 frontend/node_modules/
