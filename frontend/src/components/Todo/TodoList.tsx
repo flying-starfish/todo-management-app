@@ -30,12 +30,18 @@ interface Todo {
     position: number;
 }
 
-// ソート可能なTodoアイテムコンポーネント
-const SortableTodoItem: React.FC<{
+interface TodoListProps {
     todo: Todo;
     onToggleComplete: (id: number) => void;
     onDelete: (id: number) => void;
-}> = ({ todo, onToggleComplete, onDelete }) => {
+}
+
+// ソート可能なTodoアイテムコンポーネント
+const SortableTodoItem = ({ 
+    todo,
+    onToggleComplete,
+    onDelete
+}: TodoListProps) => {
     const {
         attributes,
         listeners,
@@ -84,7 +90,7 @@ const SortableTodoItem: React.FC<{
     );
 };
 
-const TodoList: React.FC = () => {
+const TodoList = () => {
     const [todos, setTodos] = useState<Todo[]>([]);
     const [newTodo, setNewTodo] = useState({ title: '', description: '' });
     const [error, setError] = useState<string | null>(null);
@@ -344,7 +350,6 @@ const TodoList: React.FC = () => {
                         <ul className="todo-list">
                             {todos.map((todo) => (
                                 <SortableTodoItem
-                                    key={todo.id}
                                     todo={todo}
                                     onToggleComplete={handleToggleComplete}
                                     onDelete={handleDeleteTodo}
