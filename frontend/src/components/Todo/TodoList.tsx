@@ -2,13 +2,87 @@ import React, { useEffect, useState } from 'react';
 import './TodoList.css'; // CSS をインポート
 import { toast, ToastContainer } from 'react-toastify'; // トースト通知をインポート
 import 'react-toastify/dist/ReactToastify.css'; // トースト通知のスタイルをインポート
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent,
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+    useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface Todo {
     id: number;
     title: string;
     description?: string;
     completed: boolean;
+    position: number;
 }
+
+// ソート可能なTodoアイテムコンポーネント
+const SortableTodoItem: React.FC<{
+    todo: Todo;
+    onToggleComplete: (id: number) => void;
+    onDelete: (id: number) => void;
+}> = ({ todo, onToggleComplete, onDelete }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: todo.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+        <li
+            ref={setNodeRef}
+            style={style}
+            className={`todo-item ${todo.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''}`}
+            {...attributes}
+        >
+            <div className="drag-handle" {...listeners}>
+                ⋮⋮
+            </div>
+            <div>
+                <h3>{todo.title}</h3>
+                <p>{todo.description}</p>
+                <p>Status: {todo.completed ? 'Completed' : 'Incomplete'}</p>
+            </div>
+            <div>
+                <button
+                    className="complete-btn"
+                    onClick={() => onToggleComplete(todo.id)}
+                >
+                    {todo.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
+                </button>
+                <button
+                    className="delete-btn"
+                    onClick={() => onDelete(todo.id)}
+                >
+                    Delete
+                </button>
+            </div>
+        </li>
+    );
+};
 
 const TodoList: React.FC = () => {
     const [todos, setTodos] = useState<Todo[]>([]);
@@ -21,6 +95,14 @@ const TodoList: React.FC = () => {
     const [currentPage, setCurrentPage] = useState(1); // 現在のページ番号
     const [itemsPerPage, setItemsPerPage] = useState(10); // 1ページあたりのアイテム数
     const [totalPages, setTotalPages] = useState(1); // 総ページ数を管理
+
+    // ドラッグ&ドロップのセンサー
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     useEffect(() => {
         const queryParams = new URLSearchParams({
@@ -51,6 +133,46 @@ const TodoList: React.FC = () => {
 
     const goToPage = (page: number) => {
         setCurrentPage(page);
+    };
+
+    // ドラッグ終了時の処理
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            setTodos((todos) => {
+                const oldIndex = todos.findIndex((todo) => todo.id === active.id);
+                const newIndex = todos.findIndex((todo) => todo.id === over.id);
+
+                const newTodos = arrayMove(todos, oldIndex, newIndex);
+                
+                // バックエンドに新しい順序を送信
+                const todoIds = newTodos.map(todo => todo.id);
+                console.log('Sending todo IDs:', todoIds); // デバッグ用ログ追加
+
+                fetch('http://127.0.0.1:8000/api/todos/reorder', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ todo_ids: todoIds }),
+                })
+                .then(async (response) => {
+                    if (!response.ok) {
+                        const errorText = await response.text(); // エラー詳細を取得
+                        console.error('Server response:', errorText); // エラー詳細をログ出力
+                        throw new Error('Failed to reorder todos');
+                    }
+                    toast.success('Todos reordered successfully!');
+                })
+                .catch((error) => {
+                    console.error('Error reordering todos:', error);
+                    toast.error('Failed to reorder todos.');
+                });
+
+                return newTodos;
+            });
+        }
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,16 +275,6 @@ const TodoList: React.FC = () => {
             });
     };
 
-    // 検索とフィルタリングを適用した ToDo リスト
-    // const filteredTodos = todos.filter((todo) => {
-    //     const matchesSearch = todo.title.toLowerCase().includes(searchQuery.toLowerCase());
-    //     const matchesFilter =
-    //         filterStatus === 'all' ||
-    //         (filterStatus === 'completed' && todo.completed) ||
-    //         (filterStatus === 'incomplete' && !todo.completed);
-    //     return matchesSearch && matchesFilter;
-    // });
-
     return (
         <div>
             <h2>Todo List</h2>
@@ -223,34 +335,24 @@ const TodoList: React.FC = () => {
 
             {todos.length > 0 ? (
                 <>
-                <ul className="todo-list">
-                    {todos.map((todo) => (
-                        <li
-                            key={todo.id}
-                            className={`todo-item ${todo.completed ? 'completed' : ''}`}
-                        >
-                            <div>
-                                <h3>{todo.title}</h3>
-                                <p>{todo.description}</p>
-                                <p>Status: {todo.completed ? 'Completed' : 'Incomplete'}</p>
-                            </div>
-                            <div>
-                                <button
-                                    className="complete-btn"
-                                    onClick={() => handleToggleComplete(todo.id)}
-                                >
-                                    {todo.completed ? 'Mark as Incomplete' : 'Mark as Complete'}
-                                </button>
-                                <button
-                                    className="delete-btn"
-                                    onClick={() => handleDeleteTodo(todo.id)}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                <DndContext
+                    sensors={sensors}  
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext items={todos.map(todo => todo.id)} strategy={verticalListSortingStrategy}>
+                        <ul className="todo-list">
+                            {todos.map((todo) => (
+                                <SortableTodoItem
+                                    key={todo.id}
+                                    todo={todo}
+                                    onToggleComplete={handleToggleComplete}
+                                    onDelete={handleDeleteTodo}
+                                />
+                            ))}
+                        </ul>
+                    </SortableContext>
+                </DndContext>
                 <div>
                 <button onClick={goToPreviousPage} disabled={currentPage === 1}>
                     Previous

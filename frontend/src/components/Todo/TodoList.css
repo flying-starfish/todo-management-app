@@ -109,3 +109,33 @@ input[type="text"].error {
     border-color: red; /* エラー時に赤い枠線 */
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.5); /* 赤いぼかし影を追加 */
 }
+
+/* ドラッグ&ドロップ用のスタイル */
+.drag-handle {
+    cursor: grab;
+    padding: 10px;
+    color: #666;
+    font-size: 18px;
+    user-select: none;
+    margin-right: 10px;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.todo-item.dragging {
+    opacity: 0.5;
+    z-index: 1000;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease;
+}
+
+.todo-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

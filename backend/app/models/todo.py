@@ -8,14 +8,16 @@ class Todo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    description = Column(String, nullable=True)
+    description = Column(String, nullable=True)  
     completed = Column(Boolean, default=False)
+    position = Column(Integer, default=0)  # ドラッグ&ドロップの順序を管理
 
 class TodoResponse(BaseModel):
     id: int
     title: str
     description: Optional[str]
     completed: bool
+    position: int
 
     class Config:
         orm_mode = True  # SQLAlchemy モデルを Pydantic モデルに変換可能にする
