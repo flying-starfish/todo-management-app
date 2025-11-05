@@ -34,13 +34,17 @@ interface TodoListProps {
     todo: Todo;
     onToggleComplete: (id: number) => void;
     onDelete: (id: number) => void;
+    isSelected: boolean;
+    onSelect: (id: number, selected: boolean) => void;
 }
 
 // ソート可能なTodoアイテムコンポーネント
 const SortableTodoItem = ({ 
     todo,
     onToggleComplete,
-    onDelete
+    onDelete,
+    isSelected,
+    onSelect
 }: TodoListProps) => {
     const {
         attributes,
@@ -61,9 +65,15 @@ const SortableTodoItem = ({
         <li
             ref={setNodeRef}
             style={style}
-            className={`todo-item ${todo.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''}`}
+            className={`todo-item ${todo.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''} ${isSelected ? 'selected' : ''}`}
             {...attributes}
         >
+            <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={(e) => onSelect(todo.id, e.target.checked)}
+                className="todo-checkbox"
+            />
             <div className="drag-handle" {...listeners}>
                 ⋮⋮
             </div>
@@ -102,6 +112,10 @@ const TodoList = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10); // 1ページあたりのアイテム数
     const [totalPages, setTotalPages] = useState(1); // 総ページ数を管理
 
+    // 一括操作用の状態
+    const [selectedTodos, setSelectedTodos] = useState<Set<number>>(new Set());
+    const [selectAll, setSelectAll] = useState(false);
+
     // ドラッグ&ドロップのセンサー
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -118,15 +132,32 @@ const TodoList = () => {
             ...(filterStatus !== 'all' && { status: filterStatus }),
         });
     
-        fetch(`http://127.0.0.1:8000/api/todos?${queryParams.toString()}`)
-            .then((response) => response.json())
+        const url = `http://127.0.0.1:8000/api/todos?${queryParams.toString()}`;
+        console.log('Fetching todos from:', url);
+    
+        fetch(url)
+            .then((response) => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then((data) => {
                 console.log('Fetched todos:', data);
+                console.log('Setting todos to:', data.data);
                 setTodos(data.data); // サーバーから取得したデータをセット
                 setTotalPages(data.total_pages); // 総ページ数をセット
                 setCurrentPage(data.page); // サーバーから返されたページ番号を使用
+                
+                // ページが変わったときに選択状態をリセット
+                setSelectedTodos(new Set());
+                setSelectAll(false);
             })
-            .catch((error) => console.error('Error fetching todos:', error));
+            .catch((error) => {
+                console.error('Error fetching todos:', error);
+                setError(`Failed to fetch todos: ${error.message}`);
+            });
     }, [currentPage, itemsPerPage, searchQuery, filterStatus]);
 
     const goToNextPage = () => {
@@ -281,6 +312,82 @@ const TodoList = () => {
             });
     };
 
+    // 一括操作のハンドラー関数
+    const handleSelectTodo = (id: number, selected: boolean) => {
+        const newSelected = new Set(selectedTodos);
+        if (selected) {
+            newSelected.add(id);
+        } else {
+            newSelected.delete(id);
+        }
+        setSelectedTodos(newSelected);
+        setSelectAll(newSelected.size === todos.length && todos.length > 0);
+    };
+
+    const handleSelectAll = (selected: boolean) => {
+        if (selected) {
+            setSelectedTodos(new Set(todos.map(todo => todo.id)));
+        } else {
+            setSelectedTodos(new Set());
+        }
+        setSelectAll(selected);
+    };
+
+    const handleBulkAction = (action: 'complete' | 'incomplete' | 'delete') => {
+        console.log('handleBulkAction called with action:', action);
+        
+        if (selectedTodos.size === 0) {
+            toast.warning('Please select at least one todo.');
+            return;
+        }
+
+        const todoIds = Array.from(selectedTodos);
+        const requestBody = { 
+            todo_ids: todoIds, 
+            action: action 
+        };
+        
+        console.log('Request body:', JSON.stringify(requestBody));
+        
+        fetch('http://127.0.0.1:8000/api/todos/bulk', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        })
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('Failed to perform bulk action');
+            }
+            return response.json();
+        })
+        .then((data) => {
+            if (action === 'delete') {
+                // 削除の場合は該当のtodoを配列から除去
+                setTodos(todos.filter(todo => !selectedTodos.has(todo.id)));
+                toast.success(`Deleted ${selectedTodos.size} todos successfully!`);
+            } else {
+                // 完了状態更新の場合は該当のtodoの状態を更新
+                const completed = action === 'complete';
+                setTodos(todos.map(todo => 
+                    selectedTodos.has(todo.id) 
+                        ? { ...todo, completed } 
+                        : todo
+                ));
+                toast.success(`Updated ${selectedTodos.size} todos successfully!`);
+            }
+            
+            // 選択をリセット
+            setSelectedTodos(new Set());
+            setSelectAll(false);
+        })
+        .catch((error) => {
+            console.error('Error performing bulk action:', error);
+            toast.error('Failed to perform bulk action.');
+        });
+    };
+
     return (
         <div>
             <h2>Todo List</h2>
@@ -341,6 +448,44 @@ const TodoList = () => {
 
             {todos.length > 0 ? (
                 <>
+                {/* 一括操作コントロール */}
+                <div className="bulk-actions">
+                    <div className="select-all">
+                        <input
+                            type="checkbox"
+                            checked={selectAll}
+                            onChange={(e) => handleSelectAll(e.target.checked)}
+                            id="select-all"
+                        />
+                        <label htmlFor="select-all">
+                            {selectedTodos.size > 0 ? `${selectedTodos.size} selected` : 'Select All'}
+                        </label>
+                    </div>
+                    
+                    {selectedTodos.size > 0 && (
+                        <div className="bulk-action-buttons">
+                            <button 
+                                className="bulk-btn complete-btn"
+                                onClick={() => handleBulkAction('complete')}
+                            >
+                                Mark as Complete
+                            </button>
+                            <button 
+                                className="bulk-btn incomplete-btn"
+                                onClick={() => handleBulkAction('incomplete')}
+                            >
+                                Mark as Incomplete
+                            </button>
+                            <button 
+                                className="bulk-btn delete-btn"
+                                onClick={() => handleBulkAction('delete')}
+                            >
+                                Delete Selected
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 <DndContext
                     sensors={sensors}  
                     collisionDetection={closestCenter}
@@ -350,9 +495,12 @@ const TodoList = () => {
                         <ul className="todo-list">
                             {todos.map((todo) => (
                                 <SortableTodoItem
+                                    key={todo.id}
                                     todo={todo}
                                     onToggleComplete={handleToggleComplete}
                                     onDelete={handleDeleteTodo}
+                                    isSelected={selectedTodos.has(todo.id)}
+                                    onSelect={handleSelectTodo}
                                 />
                             ))}
                         </ul>

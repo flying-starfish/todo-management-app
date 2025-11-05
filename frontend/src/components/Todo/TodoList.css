@@ -49,6 +49,90 @@ button:active {
     transform: translateY(0); /* ボタンが元の位置に戻る */
 }
 
+/* 一括操作のスタイル */
+.bulk-actions {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.select-all {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.select-all input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+}
+
+.select-all label {
+    font-weight: bold;
+    color: #495057;
+    cursor: pointer;
+}
+
+.bulk-action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bulk-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bulk-btn.complete-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.bulk-btn.complete-btn:hover {
+    background-color: #218838;
+}
+
+.bulk-btn.incomplete-btn {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.bulk-btn.incomplete-btn:hover {
+    background-color: #e0a800;
+}
+
+.bulk-btn.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.bulk-btn.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Todo アイテム内のチェックボックススタイル */
+.todo-checkbox {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* 選択されたTodoアイテムのスタイル */
+.todo-item.selected {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
 /* 無効化されたボタン */
 button:disabled {
     background-color: #cccccc; /* グレーに */

@@ -72,6 +72,54 @@ def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
 class TodoReorderRequest(BaseModel):
     todo_ids: list[int]
 
+class BulkUpdateRequest(BaseModel):
+    todo_ids: list[int]
+    action: str  # "complete", "incomplete", or "delete"
+
+@router.put("/todos/bulk")
+def bulk_update_todos(request: BulkUpdateRequest, db: Session = Depends(get_db)):
+    """
+    ToDo の一括操作エンドポイント
+    """
+    print(f"Received request: {request}")  # デバッグ用ログ
+    print(f"Received todo_ids: {request.todo_ids}")  # デバッグ用ログ
+    print(f"Received action: '{request.action}'")  # デバッグ用ログ
+    print(f"Action type: {type(request.action)}")  # デバッグ用ログ
+
+    if not request.todo_ids:
+        raise HTTPException(status_code=400, detail="No todo IDs provided")
+    
+    if request.action not in ["complete", "incomplete", "delete"]:
+        print(f"Invalid action received: '{request.action}'")  # デバッグ用ログ
+        raise HTTPException(status_code=400, detail=f"Invalid action: '{request.action}'. Must be one of: complete, incomplete, delete")
+    
+    # 対象のTodoを取得
+    todos = db.query(TodoModel).filter(TodoModel.id.in_(request.todo_ids)).all()
+    
+    if not todos:
+        raise HTTPException(status_code=404, detail="No todos found")
+    
+    updated_todos = []
+    
+    if request.action == "delete":
+        # 削除の場合
+        for todo in todos:
+            db.delete(todo)
+        db.commit()
+        return {"message": f"Deleted {len(todos)} todos successfully"}
+    else:
+        # 完了状態の更新の場合
+        completed_status = request.action == "complete"
+        for todo in todos:
+            todo.completed = completed_status
+            updated_todos.append(TodoResponse.from_orm(todo))
+        
+        db.commit()
+        return {
+            "message": f"Updated {len(todos)} todos successfully", 
+            "updated_todos": updated_todos
+        }
+
 @router.put("/todos/reorder")
 def reorder_todos(request: TodoReorderRequest, db: Session = Depends(get_db)):
     """
