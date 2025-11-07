@@ -16,4 +16,7 @@ def get_db():
         db.close()
 
 def init_db():
+    # すべてのモデルをインポート
+    from app.models.todo import Todo
+    from app.models.user import User
     Base.metadata.create_all(bind=engine)

@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
 from app.core.database import get_db
+from app.core.dependencies import get_current_active_user
 from app.models.todo import Todo as TodoModel, TodoResponse
+from app.models.user import User
 
 router = APIRouter()
 
@@ -20,6 +22,8 @@ def get_todos(
     search: Optional[str] = None,
     status: Optional[str] = None,
     db: Session = Depends(get_db)
+    # TODO: 認証機能実装後に有効化
+    # current_user: User = Depends(get_current_active_user)
 ):
     """
     ページネーションとフィルタリング対応の ToDo リスト取得エンドポイント
@@ -54,6 +58,8 @@ def get_todos(
 
 @router.post("/todos", response_model=TodoResponse)
 def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
+    # TODO: 認証機能実装後に有効化
+    # current_user: User = Depends(get_current_active_user)
     """
     新しい ToDo を作成するエンドポイント
     """
@@ -78,6 +84,8 @@ class BulkUpdateRequest(BaseModel):
 
 @router.put("/todos/bulk")
 def bulk_update_todos(request: BulkUpdateRequest, db: Session = Depends(get_db)):
+    # TODO: 認証機能実装後に有効化
+    # current_user: User = Depends(get_current_active_user)
     """
     ToDo の一括操作エンドポイント
     """

@@ -1,6 +1,7 @@
 # filepath: backend/app/main.py
 from fastapi import FastAPI
 from app.endpoints.todo import router as todo_router
+from app.endpoints.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import init_db
 
@@ -10,6 +11,7 @@ app = FastAPI()
 init_db()
 
 app.include_router(todo_router, prefix="/api", tags=["todos"])
+app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 
 app.add_middleware(
     CORSMiddleware,
