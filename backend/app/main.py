@@ -15,7 +15,10 @@ app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # React の URL
+    allow_origins=[
+        "http://localhost:3000",  # ローカル開発環境
+        "http://frontend:3000",   # Docker環境
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
