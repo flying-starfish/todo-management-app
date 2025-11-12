@@ -21,9 +21,8 @@ def get_todos(
     limit: int = Query(5, ge=1),
     search: Optional[str] = None,
     status: Optional[str] = None,
-    db: Session = Depends(get_db)
-    # TODO: 認証機能実装後に有効化
-    # current_user: User = Depends(get_current_active_user)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
 ):
     """
     ページネーションとフィルタリング対応の ToDo リスト取得エンドポイント
@@ -57,9 +56,11 @@ def get_todos(
     }
 
 @router.post("/todos", response_model=TodoResponse)
-def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
-    # TODO: 認証機能実装後に有効化
-    # current_user: User = Depends(get_current_active_user)
+def create_todo(
+    todo: TodoCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """
     新しい ToDo を作成するエンドポイント
     """
@@ -83,9 +84,11 @@ class BulkUpdateRequest(BaseModel):
     action: str  # "complete", "incomplete", or "delete"
 
 @router.put("/todos/bulk")
-def bulk_update_todos(request: BulkUpdateRequest, db: Session = Depends(get_db)):
-    # TODO: 認証機能実装後に有効化
-    # current_user: User = Depends(get_current_active_user)
+def bulk_update_todos(
+    request: BulkUpdateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """
     ToDo の一括操作エンドポイント
     """
@@ -129,7 +132,11 @@ def bulk_update_todos(request: BulkUpdateRequest, db: Session = Depends(get_db))
         }
 
 @router.put("/todos/reorder")
-def reorder_todos(request: TodoReorderRequest, db: Session = Depends(get_db)):
+def reorder_todos(
+    request: TodoReorderRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """
     ToDo の順序を更新するエンドポイント（最適化版）
     """
@@ -167,7 +174,12 @@ def reorder_todos(request: TodoReorderRequest, db: Session = Depends(get_db)):
     return {"message": "Todos reordered successfully"}
 
 @router.put("/todos/{id}", response_model=TodoResponse)
-def update_todo(id: int, todo: TodoCreate, db: Session = Depends(get_db)):
+def update_todo(
+    id: int,
+    todo: TodoCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """
     ToDo を更新するエンドポイント
     """
@@ -183,7 +195,11 @@ def update_todo(id: int, todo: TodoCreate, db: Session = Depends(get_db)):
     return TodoResponse.from_orm(db_todo)  # Pydantic モデルに変換して返す
 
 @router.delete("/todos/{id}", response_model=TodoResponse)
-def delete_todo(id: int, db: Session = Depends(get_db)):
+def delete_todo(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """
     ToDo を削除するエンドポイント
     """

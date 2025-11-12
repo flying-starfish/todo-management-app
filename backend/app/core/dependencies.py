@@ -9,6 +9,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """現在のユーザーを取得"""
+    print(f"[DEBUG] Received token: {token[:20]}..." if token else "[DEBUG] No token received")
+    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="認証情報が無効です",
@@ -16,6 +18,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     
     email = verify_token(token)
+    print(f"[DEBUG] Verified email: {email}")
+    
     if email is None:
         raise credentials_exception
     

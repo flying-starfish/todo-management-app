@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './TodoList.css'; // CSS をインポート
 import { toast, ToastContainer } from 'react-toastify'; // トースト通知をインポート
 import 'react-toastify/dist/ReactToastify.css'; // トースト通知のスタイルをインポート
+import { apiClient } from '../../utils/apiClient'; // 認証付きAPIクライアントをインポート
 import {
     DndContext,
     closestCenter,
@@ -132,18 +133,13 @@ const TodoList = () => {
             ...(filterStatus !== 'all' && { status: filterStatus }),
         });
     
-        const url = `http://127.0.0.1:8000/api/todos?${queryParams.toString()}`;
+        const url = `/api/todos?${queryParams.toString()}`;
         console.log('Fetching todos from:', url);
     
-        fetch(url)
+        apiClient.get(url)
             .then((response) => {
                 console.log('Response status:', response.status);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
+                const data = response.data;
                 console.log('Fetched todos:', data);
                 console.log('Setting todos to:', data.data);
                 setTodos(data.data); // サーバーから取得したデータをセット
@@ -187,25 +183,14 @@ const TodoList = () => {
                 const todoIds = newTodos.map(todo => todo.id);
                 console.log('Sending todo IDs:', todoIds); // デバッグ用ログ追加
 
-                fetch('http://127.0.0.1:8000/api/todos/reorder', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ todo_ids: todoIds }),
-                })
-                .then(async (response) => {
-                    if (!response.ok) {
-                        const errorText = await response.text(); // エラー詳細を取得
-                        console.error('Server response:', errorText); // エラー詳細をログ出力
-                        throw new Error('Failed to reorder todos');
-                    }
-                    toast.success('Todos reordered successfully!');
-                })
-                .catch((error) => {
-                    console.error('Error reordering todos:', error);
-                    toast.error('Failed to reorder todos.');
-                });
+                apiClient.put('/api/todos/reorder', { todo_ids: todoIds })
+                    .then((response) => {
+                        toast.success('Todos reordered successfully!');
+                    })
+                    .catch((error) => {
+                        console.error('Error reordering todos:', error);
+                        toast.error('Failed to reorder todos.');
+                    });
 
                 return newTodos;
             });
@@ -234,19 +219,13 @@ const TodoList = () => {
         }
 
         // Send POST request to FastAPI to create a new todo
-        fetch('http://127.0.0.1:8000/api/todos', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                title: newTodo.title,
-                description: newTodo.description,
-                completed: false,
-            }),
+        apiClient.post('/api/todos', {
+            title: newTodo.title,
+            description: newTodo.description,
+            completed: false,
         })
-            .then((response) => response.json())
-            .then((data) => {
+            .then((response) => {
+                const data = response.data;
                 setTodos([...todos, data]); // Add the new todo to the list
                 setNewTodo({ title: '', description: '' }); // Reset the form
                 setError(null); // エラーをリセット
@@ -265,15 +244,9 @@ const TodoList = () => {
         if (!todoToUpdate) return;
 
         // Send PUT request to FastAPI to update the todo
-        fetch(`http://127.0.0.1:8000/api/todos/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ ...todoToUpdate, completed: !todoToUpdate.completed }),
-        })
-            .then((response) => response.json())
-            .then((updatedTodo) => {
+        apiClient.put(`/api/todos/${id}`, { ...todoToUpdate, completed: !todoToUpdate.completed })
+            .then((response) => {
+                const updatedTodo = response.data;
                 // Update the todos state with the updated todo
                 setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
             })
@@ -287,19 +260,8 @@ const TodoList = () => {
         console.log(`Deleting todo with id: ${id}`);
 
         // Send DELETE request to FastAPI to delete the todo
-        fetch(`http://127.0.0.1:8000/api/todos/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
+        apiClient.delete(`/api/todos/${id}`)
             .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Failed to delete todo with id ${id}`);
-                }
-                return response.status === 204 ? null : response.json();
-            })
-            .then(() => {
                 // Remove the deleted todo from the todos state
                 setTodos(todos.filter((todo) => todo.id !== id));
 
@@ -349,43 +311,32 @@ const TodoList = () => {
         
         console.log('Request body:', JSON.stringify(requestBody));
         
-        fetch('http://127.0.0.1:8000/api/todos/bulk', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-        })
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error('Failed to perform bulk action');
-            }
-            return response.json();
-        })
-        .then((data) => {
-            if (action === 'delete') {
-                // 削除の場合は該当のtodoを配列から除去
-                setTodos(todos.filter(todo => !selectedTodos.has(todo.id)));
-                toast.success(`Deleted ${selectedTodos.size} todos successfully!`);
-            } else {
-                // 完了状態更新の場合は該当のtodoの状態を更新
-                const completed = action === 'complete';
-                setTodos(todos.map(todo => 
-                    selectedTodos.has(todo.id) 
-                        ? { ...todo, completed } 
-                        : todo
-                ));
-                toast.success(`Updated ${selectedTodos.size} todos successfully!`);
-            }
-            
-            // 選択をリセット
-            setSelectedTodos(new Set());
-            setSelectAll(false);
-        })
-        .catch((error) => {
-            console.error('Error performing bulk action:', error);
-            toast.error('Failed to perform bulk action.');
-        });
+        apiClient.put('/api/todos/bulk', requestBody)
+            .then((response) => {
+                const data = response.data;
+                if (action === 'delete') {
+                    // 削除の場合は該当のtodoを配列から除去
+                    setTodos(todos.filter(todo => !selectedTodos.has(todo.id)));
+                    toast.success(`Deleted ${selectedTodos.size} todos successfully!`);
+                } else {
+                    // 完了状態更新の場合は該当のtodoの状態を更新
+                    const completed = action === 'complete';
+                    setTodos(todos.map(todo => 
+                        selectedTodos.has(todo.id) 
+                            ? { ...todo, completed } 
+                            : todo
+                    ));
+                    toast.success(`Updated ${selectedTodos.size} todos successfully!`);
+                }
+                
+                // 選択をリセット
+                setSelectedTodos(new Set());
+                setSelectAll(false);
+            })
+            .catch((error) => {
+                console.error('Error performing bulk action:', error);
+                toast.error('Failed to perform bulk action.');
+            });
     };
 
     return (
