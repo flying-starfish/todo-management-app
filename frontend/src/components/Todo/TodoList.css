@@ -16,6 +16,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: transform 0.2s ease;
 }
 
 /* 完了したタスクのスタイル */
@@ -23,6 +24,35 @@
     text-decoration: line-through;
     color: gray;
     background-color: #e0e0e0;
+}
+
+/* ドラッグ中のスタイル */
+.todo-item.dragging {
+    opacity: 0.5;
+    z-index: 1000;
+}
+
+/* 選択されたTodoアイテムのスタイル */
+.todo-item.selected {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+/* 優先度別のスタイル */
+.todo-item.priority-0 {
+    border-left: 5px solid #dc3545; /* 赤色 - 高優先度 */
+}
+.todo-item.priority-1 {
+    border-left: 5px solid #ffc107; /* 黄色 - 中優先度 */
+}
+.todo-item.priority-2 {
+    border-left: 5px solid #28a745; /* 緑色 - 低優先度 */
+}
+
+/* ホバー時のエフェクト */
+.todo-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* ボタンの基本スタイル */
@@ -127,12 +157,6 @@ button:active {
     cursor: pointer;
 }
 
-/* 選択されたTodoアイテムのスタイル */
-.todo-item.selected {
-    border-color: #007bff;
-    background-color: #e7f3ff;
-}
-
 /* 無効化されたボタン */
 button:disabled {
     background-color: #cccccc; /* グレーに */
@@ -194,6 +218,37 @@ input[type="text"].error {
     box-shadow: 0 0 5px rgba(255, 0, 0, 0.5); /* 赤いぼかし影を追加 */
 }
 
+/* セレクトボックスの基本スタイル */
+select {
+    width: 100%; /* 幅を100%に */
+    max-width: 400px; /* 最大幅を制限 */
+    padding: 10px 15px; /* 内側の余白を設定 */
+    font-size: 16px; /* テキストサイズを設定 */
+    border: 1px solid #ccc; /* 薄いグレーの枠線 */
+    border-radius: 8px; /* 角を丸める */
+    outline: none; /* デフォルトのフォーカス枠を削除 */
+    background-color: white; /* 背景色を白に */
+    cursor: pointer; /* カーソルをポインターに */
+    transition: border-color 0.3s, box-shadow 0.3s; /* フォーカス時のアニメーション */
+    appearance: none; /* ブラウザのデフォルトスタイルを削除 */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    padding-right: 40px; /* 矢印アイコンのスペースを確保 */
+}
+
+/* フォーカス時のスタイル */
+select:focus {
+    border-color: #007bff; /* フォーカス時に青色の枠線 */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* 青色のぼかし影を追加 */
+}
+
+/* ホバー時のスタイル */
+select:hover {
+    border-color: #888; /* ホバー時に少し濃いグレーの枠線 */
+}
+
 /* ドラッグ&ドロップ用のスタイル */
 .drag-handle {
     cursor: grab;
@@ -204,22 +259,13 @@ input[type="text"].error {
     margin-right: 10px;
 }
 
+/* 無効化時のスタイル */
+.drag-handle.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* 押下時のスタイル */
 .drag-handle:active {
     cursor: grabbing;
-}
-
-.todo-item.dragging {
-    opacity: 0.5;
-    z-index: 1000;
-}
-
-.todo-item {
-    display: flex;
-    align-items: center;
-    transition: transform 0.2s ease;
-}
-
-.todo-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

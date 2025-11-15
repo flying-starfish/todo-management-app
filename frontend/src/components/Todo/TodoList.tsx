@@ -29,6 +29,7 @@ interface Todo {
     description?: string;
     completed: boolean;
     position: number;
+    priority: number;
 }
 
 interface TodoListProps {
@@ -37,6 +38,7 @@ interface TodoListProps {
     onDelete: (id: number) => void;
     isSelected: boolean;
     onSelect: (id: number, selected: boolean) => void;
+    isDraggable: boolean;
 }
 
 // ソート可能なTodoアイテムコンポーネント
@@ -45,7 +47,8 @@ const SortableTodoItem = ({
     onToggleComplete,
     onDelete,
     isSelected,
-    onSelect
+    onSelect,
+    isDraggable,
 }: TodoListProps) => {
     const {
         attributes,
@@ -66,7 +69,7 @@ const SortableTodoItem = ({
         <li
             ref={setNodeRef}
             style={style}
-            className={`todo-item ${todo.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''} ${isSelected ? 'selected' : ''}`}
+            className={`todo-item ${todo.completed ? 'completed' : ''} ${isDragging ? 'dragging' : ''} ${isSelected ? 'selected' : ''} priority-${todo.priority}`}
             {...attributes}
         >
             <input
@@ -75,13 +78,14 @@ const SortableTodoItem = ({
                 onChange={(e) => onSelect(todo.id, e.target.checked)}
                 className="todo-checkbox"
             />
-            <div className="drag-handle" {...listeners}>
+            <div className={`drag-handle ${!isDraggable ? 'disabled' : ''}`} {...listeners}>
                 ⋮⋮
             </div>
             <div>
                 <h3>{todo.title}</h3>
                 <p>{todo.description}</p>
                 <p>Status: {todo.completed ? 'Completed' : 'Incomplete'}</p>
+                <p>Priority: {todo.priority === 0 ? 'High' : todo.priority === 1 ? 'Medium' : 'Low'}</p>
             </div>
             <div>
                 <button
@@ -103,10 +107,14 @@ const SortableTodoItem = ({
 
 const TodoList = () => {
     const [todos, setTodos] = useState<Todo[]>([]);
-    const [newTodo, setNewTodo] = useState({ title: '', description: '' });
+    const [newTodo, setNewTodo] = useState({ title: '', description: '', priority: 1 });
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'incomplete'>('all');
+    const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+    // sortOrder状態を追加
+    const [sortOrder, setSortOrder] = useState<'none' | 'asc' | 'desc'>('none');
+    const isDraggable = sortOrder === 'none';
 
     // ページネーション用の状態
     const [currentPage, setCurrentPage] = useState(1); // 現在のページ番号
@@ -131,8 +139,13 @@ const TodoList = () => {
             limit: itemsPerPage.toString(),
             ...(searchQuery && { search: searchQuery }),
             ...(filterStatus !== 'all' && { status: filterStatus }),
+            sort_by: sortOrder,
         });
-    
+        // 優先度フィルタを追加
+        if (filterPriority !== 'all') {
+            const priorityMap = { high: 0, medium: 1, low: 2 };
+            queryParams.append('priority', priorityMap[filterPriority].toString());
+        }
         const url = `/api/todos?${queryParams.toString()}`;
         console.log('Fetching todos from:', url);
     
@@ -154,7 +167,7 @@ const TodoList = () => {
                 console.error('Error fetching todos:', error);
                 setError(`Failed to fetch todos: ${error.message}`);
             });
-    }, [currentPage, itemsPerPage, searchQuery, filterStatus]);
+    }, [currentPage, itemsPerPage, searchQuery, filterStatus, filterPriority, sortOrder]);
 
     const goToNextPage = () => {
         setCurrentPage((prevPage) => prevPage + 1);
@@ -223,11 +236,12 @@ const TodoList = () => {
             title: newTodo.title,
             description: newTodo.description,
             completed: false,
+            priority: newTodo.priority,
         })
             .then((response) => {
                 const data = response.data;
                 setTodos([...todos, data]); // Add the new todo to the list
-                setNewTodo({ title: '', description: '' }); // Reset the form
+                setNewTodo({ title: '', description: '', priority: 1 }); // Reset the form
                 setError(null); // エラーをリセット
 
                 // トースト通知を表示
@@ -352,7 +366,7 @@ const TodoList = () => {
                 style={{ marginBottom: '10px', display: 'block' }}
             />
 
-            {/* フィルタリングボタン */}
+            {/* 完了状態フィルタリングボタン */}
             <div style={{ marginBottom: '10px', display: 'flex', gap: '10px' }}>
                 <button
                     className="filter-btn"
@@ -377,6 +391,39 @@ const TodoList = () => {
                 </button>
             </div>
 
+            {/* 優先度フィルタリングボタン */}
+            <div style={{ marginBottom: '10px', display: 'flex', gap: '10px' }}>
+                <button
+                    className="filter-btn"
+                    onClick={() => setFilterPriority('all')}
+                    disabled={filterPriority === 'all'}
+                >
+                    All Priorities
+                </button>
+                <button
+                    className="filter-btn"
+                    onClick={() => setFilterPriority('high')}
+                    disabled={filterPriority === 'high'}
+                >
+                    High
+                </button>
+                <button
+                    className="filter-btn"
+                    onClick={() => setFilterPriority('medium')}
+                    disabled={filterPriority === 'medium'}
+                >
+                    Medium
+                </button>
+                <button
+                    className="filter-btn"
+                    onClick={() => setFilterPriority('low')}
+                    disabled={filterPriority === 'low'}
+                >
+                    Low
+                </button>
+            </div>
+
+            {/* 新規Todo追加フォーム */}
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
@@ -393,6 +440,16 @@ const TodoList = () => {
                     value={newTodo.description}
                     onChange={handleInputChange}
                 />
+                {/* 優先度選択フィールドを追加 */}
+                <select
+                    name="priority"
+                    value={newTodo.priority}
+                    onChange={(e) => setNewTodo({ ...newTodo, priority: parseInt(e.target.value) })}
+                    >
+                    <option value={0}>High</option>
+                    <option value={1}>Medium</option>
+                    <option value={2}>Low</option>
+                </select>
                 <button type="submit">Add Todo</button>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
             </form>
@@ -436,13 +493,63 @@ const TodoList = () => {
                         </div>
                     )}
                 </div>
+                {/* 優先度によるソートボタン */}
+                <div style={{ marginBottom: '10px' }}>
+                    <button
+                        className="sort-btn"
+                        onClick={() => {
+                            if (sortOrder === 'none') {
+                                setSortOrder('asc');
+                            } else if (sortOrder === 'asc') {
+                                setSortOrder('desc');
+                            } else {
+                                setSortOrder('none');
+                            }
+                        }}
+                    >
+                        Sort by Priority: {sortOrder === 'none' ? 'None' : sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                    </button>
+                </div>
 
-                <DndContext
-                    sensors={sensors}  
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                >
-                    <SortableContext items={todos.map(todo => todo.id)} strategy={verticalListSortingStrategy}>
+                {/* DndContextをソート時は無効化 */}
+                {isDraggable ? (
+                    // ソート有効時のドラッグ&ドロップ表示
+                    <DndContext
+                        sensors={sensors}  
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext items={todos.map(todo => todo.id)} strategy={verticalListSortingStrategy}>
+                            <ul className="todo-list">
+                                {todos.map((todo) => (
+                                    <SortableTodoItem
+                                        key={todo.id}
+                                        todo={todo}
+                                        onToggleComplete={handleToggleComplete}
+                                        onDelete={handleDeleteTodo}
+                                        isSelected={selectedTodos.has(todo.id)}
+                                        onSelect={handleSelectTodo}
+                                        isDraggable={isDraggable}
+                                    />
+                                ))}
+                            </ul>
+                        </SortableContext>
+                    </DndContext>                    
+                ) : (
+                    // ソート無効時の通常表示
+                    <>
+                    <div className="sort-notice" style={{
+                        backgroundColor: '#fff3cd',
+                        border: '1px solid #ffc107',
+                        padding: '10px',
+                        marginBottom: '10px',
+                        borderRadius: '5px',
+                        textAlign: 'center'
+                    }}>
+                        ⚠️ 優先度でソート中です。手動で並び替えるには「None」に戻してください。
+                    </div>
+
+                    <div>
                         <ul className="todo-list">
                             {todos.map((todo) => (
                                 <SortableTodoItem
@@ -452,11 +559,15 @@ const TodoList = () => {
                                     onDelete={handleDeleteTodo}
                                     isSelected={selectedTodos.has(todo.id)}
                                     onSelect={handleSelectTodo}
+                                    isDraggable={isDraggable}
                                 />
                             ))}
                         </ul>
-                    </SortableContext>
-                </DndContext>
+                    </div>
+                    </>
+                )}
+
+                {/* ページネーションコントロール */}
                 <div>
                 <button onClick={goToPreviousPage} disabled={currentPage === 1}>
                     Previous

@@ -14,6 +14,9 @@ class TodoCreate(BaseModel):
     description: Optional[str] = None
     completed: bool = False
     position: Optional[int] = None
+    priority: Optional[int] = 1  # デフォルト優先度を中（1）に設定
+
+
 
 @router.get("/todos", response_model=dict)
 def get_todos(
@@ -21,6 +24,8 @@ def get_todos(
     limit: int = Query(5, ge=1),
     search: Optional[str] = None,
     status: Optional[str] = None,
+    priority: Optional[int] = None, # Noneの場合はフィルタリングしない
+    sort_by: Optional[str] = Query("none", regex="^(none|asc|desc)$"),  # ソート対象のカラム
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
@@ -30,18 +35,30 @@ def get_todos(
     query = db.query(TodoModel)
 
     # フィルタリング処理
+    # 検索フィルタリング
     if search:
         query = query.filter(TodoModel.title.ilike(f"%{search}%"))
+    # ステータスフィルタリング
     if status == "completed":
         query = query.filter(TodoModel.completed.is_(True))
     elif status == "incomplete":
         query = query.filter(TodoModel.completed.is_(False))
+    # 優先度フィルタリング
+    if priority is not None:
+        query = query.filter(TodoModel.priority == priority)
 
     # 総アイテム数を取得
     total = query.count()
 
-    # ページネーション処理（position順でソート）
-    todos = query.order_by(TodoModel.position, TodoModel.id).offset((page - 1) * limit).limit(limit).all()
+    # sort_by に基づくソート処理
+    if sort_by == "asc":
+        query = query.order_by(TodoModel.priority.asc(), TodoModel.position, TodoModel.id)
+    elif sort_by == "desc":
+        query = query.order_by(TodoModel.priority.desc(), TodoModel.position, TodoModel.id)
+    else:  # position ソート
+        query = query.order_by(TodoModel.position, TodoModel.id)
+    # ページネーション処理
+    todos = query.offset((page - 1) * limit).limit(limit).all()
 
     # 総ページ数を計算
     total_pages = (total + limit - 1) // limit
@@ -70,6 +87,10 @@ def create_todo(
         max_position = db.query(TodoModel).order_by(TodoModel.position.desc()).first()
         todo_data['position'] = (max_position.position + 1) if max_position else 0
     
+    # 優先度が指定されていない場合は中（1）に設定
+    if todo_data['priority'] is None:
+        todo_data['priority'] = 1
+
     db_todo = TodoModel(**todo_data)
     db.add(db_todo)
     db.commit()
