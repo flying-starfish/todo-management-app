@@ -269,3 +269,56 @@ select:hover {
 .drag-handle:active {
     cursor: grabbing;
 }
+
+/* Todoコンテンツエリア */
+.todo-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* 編集可能なタイトル */
+.editable-title {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 0;
+}
+
+.editable-title:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* インライン編集用のインプット */
+.inline-edit-input {
+    width: 100%;
+    padding: 6px 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: 2px solid #4a90e2;
+    border-radius: 4px;
+    outline: none;
+    font-family: inherit;
+}
+
+/* Todoアクションボタンエリア */
+.todo-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* 編集ボタン */
+.edit-btn {
+    background-color: #6c757d;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.edit-btn:hover {
+    background-color: #5a6268;
+}
+
+.edit-btn:active {
+    background-color: #495057;
+}

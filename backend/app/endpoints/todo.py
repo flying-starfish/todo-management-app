@@ -208,8 +208,10 @@ def update_todo(
     if not db_todo:
         raise HTTPException(status_code=404, detail="Todo not found")
 
-    for key, value in todo.dict().items():
-        setattr(db_todo, key, value)
+    # Noneでない値のみを更新（部分更新をサポート）
+    for key, value in todo.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(db_todo, key, value)
 
     db.commit()
     db.refresh(db_todo)

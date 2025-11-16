@@ -3,6 +3,7 @@ import './TodoList.css'; // CSS をインポート
 import { toast, ToastContainer } from 'react-toastify'; // トースト通知をインポート
 import 'react-toastify/dist/ReactToastify.css'; // トースト通知のスタイルをインポート
 import { apiClient } from '../../utils/apiClient'; // 認証付きAPIクライアントをインポート
+import TodoEditPanel from './TodoEditPanel'; // 編集パネルをインポート
 import {
     DndContext,
     closestCenter,
@@ -36,6 +37,8 @@ interface TodoListProps {
     todo: Todo;
     onToggleComplete: (id: number) => void;
     onDelete: (id: number) => void;
+    onEdit: (id: number) => void;
+    onUpdateTitle: (id: number, newTitle: string) => void;
     isSelected: boolean;
     onSelect: (id: number, selected: boolean) => void;
     isDraggable: boolean;
@@ -46,10 +49,14 @@ const SortableTodoItem = ({
     todo,
     onToggleComplete,
     onDelete,
+    onEdit,
+    onUpdateTitle,
     isSelected,
     onSelect,
     isDraggable,
 }: TodoListProps) => {
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [editedTitle, setEditedTitle] = useState(todo.title);
     const {
         attributes,
         listeners,
@@ -63,6 +70,32 @@ const SortableTodoItem = ({
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
+    };
+
+    // タイトルのダブルクリックでインライン編集モードに
+    const handleTitleDoubleClick = () => {
+        setIsEditingTitle(true);
+    };
+
+    // インライン編集の保存
+    const handleTitleSave = () => {
+        if (editedTitle.trim() === '') {
+            setEditedTitle(todo.title); // 空の場合は元に戻す
+        } else if (editedTitle !== todo.title) {
+            // タイトルが変更された場合のみデータベースを更新
+            onUpdateTitle(todo.id, editedTitle);
+        }
+        setIsEditingTitle(false);
+    };
+
+    // Enterキーで保存、Escapeでキャンセル
+    const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleTitleSave();
+        } else if (e.key === 'Escape') {
+            setEditedTitle(todo.title);
+            setIsEditingTitle(false);
+        }
     };
 
     return (
@@ -81,13 +114,34 @@ const SortableTodoItem = ({
             <div className={`drag-handle ${!isDraggable ? 'disabled' : ''}`} {...listeners}>
                 ⋮⋮
             </div>
-            <div>
-                <h3>{todo.title}</h3>
+            <div className="todo-content">
+                {isEditingTitle ? (
+                    <input
+                        type="text"
+                        className="inline-edit-input"
+                        value={editedTitle}
+                        onChange={(e) => setEditedTitle(e.target.value)}
+                        onBlur={handleTitleSave}
+                        onKeyDown={handleTitleKeyDown}
+                        autoFocus
+                    />
+                ) : (
+                    <h3 onDoubleClick={handleTitleDoubleClick} className="editable-title">
+                        {todo.title}
+                    </h3>
+                )}
                 <p>{todo.description}</p>
                 <p>Status: {todo.completed ? 'Completed' : 'Incomplete'}</p>
                 <p>Priority: {todo.priority === 0 ? 'High' : todo.priority === 1 ? 'Medium' : 'Low'}</p>
             </div>
-            <div>
+            <div className="todo-actions">
+                <button
+                    className="edit-btn"
+                    onClick={() => onEdit(todo.id)}
+                    title="Edit todo details"
+                >
+                    Edit
+                </button>
                 <button
                     className="complete-btn"
                     onClick={() => onToggleComplete(todo.id)}
@@ -124,6 +178,10 @@ const TodoList = () => {
     // 一括操作用の状態
     const [selectedTodos, setSelectedTodos] = useState<Set<number>>(new Set());
     const [selectAll, setSelectAll] = useState(false);
+
+    // 編集パネル用の状態
+    const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+    const [isEditPanelOpen, setIsEditPanelOpen] = useState(false);
 
     // ドラッグ&ドロップのセンサー
     const sensors = useSensors(
@@ -353,6 +411,68 @@ const TodoList = () => {
             });
     };
 
+    // 編集ボタンがクリックされた時の処理
+    const handleEditTodo = (id: number) => {
+        const todoToEdit = todos.find(todo => todo.id === id);
+        if (todoToEdit) {
+            setEditingTodo(todoToEdit);
+            setIsEditPanelOpen(true);
+        }
+    };
+
+    // サイドパネルでの保存処理
+    const handleSaveTodo = (id: number, updatedFields: Partial<Todo>) => {
+        const todoToUpdate = todos.find(todo => todo.id === id);
+        if (!todoToUpdate) return;
+
+        // 既存のTodoデータとマージして完全なデータを送信
+        const fullTodoData = {
+            title: updatedFields.title ?? todoToUpdate.title,
+            description: updatedFields.description ?? todoToUpdate.description,
+            completed: updatedFields.completed ?? todoToUpdate.completed,
+            position: todoToUpdate.position, // positionは保持
+            priority: updatedFields.priority ?? todoToUpdate.priority,
+        };
+
+        apiClient.put(`/api/todos/${id}`, fullTodoData)
+            .then((response) => {
+                const updatedTodo = response.data;
+                setTodos(todos.map(todo => todo.id === id ? updatedTodo : todo));
+                setIsEditPanelOpen(false);
+                toast.success('Todo updated successfully!');
+            })
+            .catch((error) => {
+                console.error('Error updating todo:', error);
+                toast.error('Failed to update todo.');
+            });
+    };
+
+    // インライン編集でタイトルのみを更新
+    const handleUpdateTitle = (id: number, newTitle: string) => {
+        const todoToUpdate = todos.find(todo => todo.id === id);
+        if (!todoToUpdate) return;
+
+        // タイトルのみを変更して完全なデータを送信
+        const fullTodoData = {
+            title: newTitle,
+            description: todoToUpdate.description,
+            completed: todoToUpdate.completed,
+            position: todoToUpdate.position,
+            priority: todoToUpdate.priority,
+        };
+
+        apiClient.put(`/api/todos/${id}`, fullTodoData)
+            .then((response) => {
+                const updatedTodo = response.data;
+                setTodos(todos.map(todo => todo.id === id ? updatedTodo : todo));
+                toast.success('Title updated successfully!');
+            })
+            .catch((error) => {
+                console.error('Error updating title:', error);
+                toast.error('Failed to update title.');
+            });
+    };
+
     return (
         <div>
             <h2>Todo List</h2>
@@ -527,6 +647,8 @@ const TodoList = () => {
                                         todo={todo}
                                         onToggleComplete={handleToggleComplete}
                                         onDelete={handleDeleteTodo}
+                                        onEdit={handleEditTodo}
+                                        onUpdateTitle={handleUpdateTitle}
                                         isSelected={selectedTodos.has(todo.id)}
                                         onSelect={handleSelectTodo}
                                         isDraggable={isDraggable}
@@ -557,6 +679,8 @@ const TodoList = () => {
                                     todo={todo}
                                     onToggleComplete={handleToggleComplete}
                                     onDelete={handleDeleteTodo}
+                                    onEdit={handleEditTodo}
+                                    onUpdateTitle={handleUpdateTitle}
                                     isSelected={selectedTodos.has(todo.id)}
                                     onSelect={handleSelectTodo}
                                     isDraggable={isDraggable}
@@ -581,6 +705,17 @@ const TodoList = () => {
             ) : (
                 <p>No todos match your criteria!</p>
             )}
+
+            {/* 編集パネル */}
+            {editingTodo && (
+                <TodoEditPanel
+                    todo={editingTodo}
+                    isOpen={isEditPanelOpen}
+                    onClose={() => setIsEditPanelOpen(false)}
+                    onSave={handleSaveTodo}
+                />
+            )}
+
             {/* トースト通知を表示するコンテナ */}
             <ToastContainer />
         </div>
