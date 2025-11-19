@@ -25,7 +25,7 @@ def get_todos(
     search: Optional[str] = None,
     status: Optional[str] = None,
     priority: Optional[int] = None, # Noneの場合はフィルタリングしない
-    sort_by: Optional[str] = Query("none", regex="^(none|asc|desc)$"),  # ソート対象のカラム
+    sort_by: Optional[str] = Query("none", pattern="^(none|asc|desc)$"),  # ソート対象のカラム
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):

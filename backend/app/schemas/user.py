@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -14,13 +14,12 @@ class UserLogin(BaseModel):
 
 # ユーザー情報レスポンス用のスキーマ
 class User(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     email: str
     is_active: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 # トークンレスポンス用のスキーマ
 class Token(BaseModel):

@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from app.core.database import Base  # database.py から Base をインポート
 
@@ -14,13 +14,11 @@ class Todo(Base):
     priority = Column(Integer, default=1)  # 優先度: 0=高, 1=中, 2=低
 
 class TodoResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: int
     title: str
     description: Optional[str]
     completed: bool
     position: int
     priority: int
-
-    class Config:
-        orm_mode = True  # SQLAlchemy モデルを Pydantic モデルに変換可能にする
-        from_attributes = True  # Pydantic v2.x 以降で必要
