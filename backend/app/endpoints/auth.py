@@ -47,6 +47,13 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # 非アクティブユーザーのチェック
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="このアカウントは無効化されています（inactive）"
+        )
+    
     # アクセストークンの作成
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

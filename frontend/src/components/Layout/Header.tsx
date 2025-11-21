@@ -52,6 +52,7 @@ export const Header = () => {
                 onClick={toggleDropdown}
                 aria-expanded={isDropdownOpen}
                 aria-haspopup="true"
+                aria-label="user menu button"
               >
                 <div className="user-avatar">
                   {getUserInitial(user.email)}

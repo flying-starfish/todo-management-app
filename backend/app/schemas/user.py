@@ -4,7 +4,7 @@ from datetime import datetime
 
 # ユーザー登録用のスキーマ
 class UserCreate(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 # ログイン用のスキーマ
