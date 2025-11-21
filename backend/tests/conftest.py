@@ -1,6 +1,7 @@
 """
 テスト用の共通設定とフィクスチャ
 """
+
 print(">>> conftest.py がimportされた")
 
 import pytest
@@ -9,9 +10,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
 from app.core.database import Base, get_db
 from app.core.security import get_password_hash
+from app.main import app
 from app.models.user import User
 
 # テスト用のインメモリSQLiteデータベース
@@ -48,6 +49,7 @@ def client(db_session):
     FastAPIのTestClientを提供（依存性注入でテストDBを使用）
     """
     print("5. client フィクスチャが実行された（db_sessionに依存）")
+
     def override_get_db():
         try:
             yield db_session

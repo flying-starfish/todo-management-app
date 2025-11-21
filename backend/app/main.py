@@ -1,9 +1,10 @@
 # filepath: backend/app/main.py
 from fastapi import FastAPI
-from app.endpoints.todo import router as todo_router
-from app.endpoints.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.core.database import init_db
+from app.endpoints.auth import router as auth_router
+from app.endpoints.todo import router as todo_router
 
 app = FastAPI()
 
@@ -17,15 +18,14 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # ローカル開発環境
-        "http://frontend:3000",   # Docker環境
+        "http://frontend:3000",  # Docker環境
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+
 @app.get("/")
 def read_root():
     return {"message": "Hello, FastAPI!"}
-
-

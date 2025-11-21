@@ -4,20 +4,37 @@ A full-stack todo management application built with FastAPI (backend) and React 
 
 > Practice React, FastAPI etc.
 
+## 📚 Documentation
+
+**👉 [ドキュメント一覧・ナビゲーション (DOCS.md)](DOCS.md)** ← 迷ったらここから！
+
+よく使うドキュメント：
+- **[Backend Development Guide](backend/DEVELOPMENT.md)** - バックエンド開発の詳細ガイド（Lint、テスト、コード品質）
+- **[Testing Guide](TESTING.md)** - テスト戦略とベストプラクティス
+- **[Docker Guide](DOCKER.md)** - Docker環境での開発・デプロイ
+
 ## 🏗️ Project Structure
 
 ```
 todo-management-app/
-├── backend/           # FastAPI backend
-│   ├── app/          # Application code
-│   ├── requirements.txt  # Python dependencies
-│   └── todos.db      # SQLite database
-├── frontend/         # React frontend
-│   ├── src/          # React components
-│   ├── package.json  # Node.js dependencies
-│   └── public/       # Static assets
-├── venv/            # Python virtual environment (ignored by Git)
-└── README.md        # This file
+├── .github/
+│   └── workflows/
+│       └── ci.yml          # CI/CDパイプライン
+├── backend/                # FastAPI backend
+│   ├── app/               # Application code
+│   ├── tests/             # テストコード
+│   ├── requirements.txt   # 本番用依存関係
+│   ├── requirements-dev.txt  # 開発用依存関係（Lint含む）
+│   ├── pyproject.toml     # ツール設定（black, isort, mypy, pytest）
+│   ├── .flake8           # flake8設定
+│   ├── Makefile          # 便利コマンド集
+│   ├── DEVELOPMENT.md    # 開発ガイド
+│   └── db/               # SQLiteデータベース
+├── frontend/              # React frontend
+│   ├── src/              # React components
+│   ├── public/           # Static assets
+│   └── coverage/         # テストカバレッジレポート
+└── venv/                 # Python仮想環境（Git管理外）
 ```
 
 ## 🚀 Getting Started
@@ -38,12 +55,22 @@ cd todo-management-app
 ### 2. Set up Backend
 
 ```bash
+# 仮想環境作成
+python -m venv venv
+
+# 仮想環境有効化
+source venv/bin/activate  # On macOS/Linux
+# venv\Scripts\activate   # On Windows
+
+# 依存関係インストール
 cd backend
-python -m venv ../venv
-source ../venv/bin/activate  # On macOS/Linux
-# ../venv/Scripts/activate   # On Windows
 pip install -r requirements.txt
+
+# 開発用ツール（Lint、テストツール）もインストールする場合
+pip install -r requirements-dev.txt
 ```
+
+詳細は [Backend Development Guide](backend/DEVELOPMENT.md) を参照。
 
 ### 3. Set up Frontend
 
@@ -90,14 +117,34 @@ The frontend will be available at: http://localhost:3000
 ## 🛠️ Development
 
 ### Backend Development
-- API documentation is available at: http://localhost:8000/docs (Swagger UI)
-- Database: SQLite (todos.db)
-- Virtual environment is isolated in `venv/` directory
+
+**クイックコマンド（要: `pip install -r requirements-dev.txt`）:**
+```bash
+cd backend
+
+# すべてのチェック（フォーマット、Lint、セキュリティ、テスト）
+make check-all
+
+# コード自動整形
+make format
+
+# Lintチェック
+make lint
+
+# テスト（カバレッジ付き）
+make test-cov
+```
+
+**詳細情報:**
+- API documentation: http://localhost:8000/docs (Swagger UI)
+- Database: SQLite (`backend/db/todos.db`)
+- [開発ガイド](backend/DEVELOPMENT.md) - Lint、テスト、コード品質管理
 
 ### Frontend Development
 - Hot reload is enabled in development mode
 - TypeScript is configured for type checking
 - CSS modules are available for component styling
+- Test coverage: `npm run test:coverage`
 
 ## 📝 API Endpoints
 
@@ -106,13 +153,54 @@ The frontend will be available at: http://localhost:3000
 - `PUT /todos/{id}` - Update a todo
 - `DELETE /todos/{id}` - Delete a todo
 
+## ✅ Code Quality
+
+このプロジェクトでは以下のツールでコード品質を保証しています：
+
+- **Linting**: flake8（PEP8準拠）
+- **Formatting**: black, isort
+- **Type Checking**: mypy
+- **Testing**: pytest（カバレッジ測定付き）
+- **Security**: pip-audit, safety
+- **CI/CD**: GitHub Actions（自動テスト・Lint）
+
+詳細は [Backend Development Guide](backend/DEVELOPMENT.md) を参照。
+
+## 🧪 Testing
+
+```bash
+# Backend tests
+cd backend
+pytest                      # 通常のテスト
+pytest --cov=app           # カバレッジ付き
+make test-cov              # HTMLレポート生成
+
+# Frontend tests
+cd frontend
+npm test                    # インタラクティブモード
+npm run test:coverage       # カバレッジ付き
+```
+
+詳細は [TESTING.md](TESTING.md) を参照。
+
+## 🐳 Docker
+
+Docker Composeで簡単に起動できます：
+
+```bash
+docker-compose up
+```
+
+詳細は [DOCKER.md](DOCKER.md) を参照。
+
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Ensure tests pass
-5. Submit a pull request
+4. **コミット前に品質チェック**: `cd backend && make check-all`
+5. Ensure all tests pass
+6. Submit a pull request
 
 ## 📄 License
 

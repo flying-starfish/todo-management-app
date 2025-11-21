@@ -1,7 +1,9 @@
 """
 Todo エンドポイントのテスト
 """
+
 import pytest
+
 from app.models.todo import Todo
 
 
@@ -57,8 +59,7 @@ class TestTodoEndpoints:
         """Todoが存在する場合に取得できることを確認"""
         # テストデータを作成
         todos = [
-            Todo(title=f"Todo {i}", description=f"Desc {i}", completed=False, position=i, priority=1)
-            for i in range(3)
+            Todo(title=f"Todo {i}", description=f"Desc {i}", completed=False, position=i, priority=1) for i in range(3)
         ]
         for todo in todos:
             db_session.add(todo)
@@ -73,10 +74,7 @@ class TestTodoEndpoints:
     def test_get_todos_pagination(self, client, auth_headers, db_session):
         """ページネーションが正しく動作することを確認"""
         # 15個のTodoを作成
-        todos = [
-            Todo(title=f"Todo {i}", completed=False, position=i, priority=1)
-            for i in range(15)
-        ]
+        todos = [Todo(title=f"Todo {i}", completed=False, position=i, priority=1) for i in range(15)]
         for todo in todos:
             db_session.add(todo)
         db_session.commit()
@@ -224,22 +222,17 @@ class TestTodoEndpoints:
 
     def test_bulk_complete_todos(self, client, auth_headers, db_session):
         """一括完了操作が正しく動作することを確認"""
-        todos = [
-            Todo(title=f"Todo {i}", completed=False, position=i, priority=1)
-            for i in range(3)
-        ]
+        todos = [Todo(title=f"Todo {i}", completed=False, position=i, priority=1) for i in range(3)]
         for todo in todos:
             db_session.add(todo)
         db_session.commit()
-        
+
         todo_ids = [todo.id for todo in todos]
         response = client.put(
-            "/api/todos/bulk",
-            json={"todo_ids": todo_ids, "action": "complete"},
-            headers=auth_headers
+            "/api/todos/bulk", json={"todo_ids": todo_ids, "action": "complete"}, headers=auth_headers
         )
         assert response.status_code == 200
-        
+
         # すべて完了状態になっていることを確認
         response = client.get("/api/todos", headers=auth_headers)
         data = response.json()
@@ -247,22 +240,15 @@ class TestTodoEndpoints:
 
     def test_bulk_delete_todos(self, client, auth_headers, db_session):
         """一括削除操作が正しく動作することを確認"""
-        todos = [
-            Todo(title=f"Todo {i}", completed=False, position=i, priority=1)
-            for i in range(3)
-        ]
+        todos = [Todo(title=f"Todo {i}", completed=False, position=i, priority=1) for i in range(3)]
         for todo in todos:
             db_session.add(todo)
         db_session.commit()
-        
+
         todo_ids = [todo.id for todo in todos]
-        response = client.put(
-            "/api/todos/bulk",
-            json={"todo_ids": todo_ids, "action": "delete"},
-            headers=auth_headers
-        )
+        response = client.put("/api/todos/bulk", json={"todo_ids": todo_ids, "action": "delete"}, headers=auth_headers)
         assert response.status_code == 200
-        
+
         # すべて削除されていることを確認
         response = client.get("/api/todos", headers=auth_headers)
         data = response.json()
@@ -278,12 +264,8 @@ class TestTodoEndpoints:
         for todo in todos:
             db_session.add(todo)
         db_session.commit()
-        
+
         # 順序を逆にする
         todo_ids = [todos[2].id, todos[1].id, todos[0].id]
-        response = client.put(
-            "/api/todos/reorder",
-            json={"todo_ids": todo_ids},
-            headers=auth_headers
-        )
+        response = client.put("/api/todos/reorder", json={"todo_ids": todo_ids}, headers=auth_headers)
         assert response.status_code == 200

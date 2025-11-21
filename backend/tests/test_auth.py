@@ -1,9 +1,11 @@
 """
 認証エンドポイントのテスト
 """
+
 import pytest
-from app.models.user import User
+
 from app.core.security import get_password_hash
+from app.models.user import User
 
 
 class TestAuthEndpoints:
@@ -112,7 +114,7 @@ class TestAuthEndpoints:
             data={"username": "test@example.com", "password": "testpassword"},
         )
         token = response.json()["access_token"]
-        
+
         # トークンを使ってユーザー情報を取得
         headers = {"Authorization": f"Bearer {token}"}
         response = client.get("/api/auth/me", headers=headers)
@@ -128,7 +130,7 @@ class TestAuthEndpoints:
         }
         response = client.post("/api/auth/register", json=user_data)
         assert response.status_code == 200
-        
+
         # 平文パスワードでログインできることを確認
         response = client.post(
             "/api/auth/login",

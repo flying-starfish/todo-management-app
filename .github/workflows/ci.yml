@@ -26,7 +26,7 @@ jobs:
       working-directory: ./backend
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
 
     - name: Run tests with pytest
       working-directory: ./backend
@@ -85,9 +85,72 @@ jobs:
         name: frontend-coverage-report
         path: frontend/coverage/
 
-  # リンター/フォーマッターのチェック
-  lint:
-    name: Lint & Format Check
+  # バックエンドのリンター/フォーマッターチェック
+  backend-lint:
+    name: Backend Lint & Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install linting tools
+      working-directory: ./backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+
+    - name: Run flake8
+      working-directory: ./backend
+      run: flake8 app/
+
+    - name: Check black formatting
+      working-directory: ./backend
+      run: black --check app/ tests/
+
+    - name: Check isort
+      working-directory: ./backend
+      run: isort --check-only app/ tests/
+
+    - name: Run mypy type check
+      working-directory: ./backend
+      run: mypy app/
+      continue-on-error: true
+
+  # フロントエンドのリンターチェック
+  frontend-lint:
+    name: Frontend Lint Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Run ESLint
+      working-directory: ./frontend
+      run: npm run lint --if-present
+      continue-on-error: true
+
+  # セキュリティスキャン
+  security-scan:
+    name: Security Scan
     runs-on: ubuntu-latest
     
     steps:
@@ -99,23 +162,20 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Python linting tools
+    - name: Install security tools
+      working-directory: ./backend
       run: |
-        pip install flake8 black isort
+        python -m pip install --upgrade pip
+        pip install pip-audit
 
-    - name: Run flake8
+    - name: Run pip-audit
       working-directory: ./backend
-      run: flake8 app/ --max-line-length=120 --exclude=__pycache__
+      run: pip-audit --desc -r requirements.txt
       continue-on-error: true
 
-    - name: Check black formatting
-      working-directory: ./backend
-      run: black --check app/
-      continue-on-error: true
-
-    - name: Check isort
-      working-directory: ./backend
-      run: isort --check-only app/
+    - name: Run npm audit
+      working-directory: ./frontend
+      run: npm audit --audit-level=moderate
       continue-on-error: true
 
   # Dockerイメージのビルドテスト
@@ -137,14 +197,16 @@ jobs:
   notify-success:
     name: Notify Success
     runs-on: ubuntu-latest
-    needs: [backend-test, frontend-test, lint, docker-build]
+    needs: [backend-test, frontend-test, backend-lint, frontend-lint, security-scan, docker-build]
     if: success()
     
     steps:
     - name: Success notification
       run: |
-        echo "✅ All tests passed successfully!"
+        echo "✅ All CI checks passed successfully!"
         echo "Backend tests: ✅"
         echo "Frontend tests: ✅"
-        echo "Lint checks: ✅"
+        echo "Backend lint: ✅"
+        echo "Frontend lint: ✅"
+        echo "Security scan: ✅"
         echo "Docker builds: ✅"

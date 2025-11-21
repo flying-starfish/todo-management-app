@@ -1,7 +1,9 @@
 """
 TestClientの動作デモ
 """
+
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 # TestClientを作成
@@ -18,10 +20,7 @@ print(f"   Response: {response.json()}")
 
 # 2. POSTリクエスト（ユーザー登録）
 print("\n2. POST リクエスト (ユーザー登録):")
-register_data = {
-    "email": "demo@example.com",
-    "password": "demopassword"
-}
+register_data = {"email": "demo@example.com", "password": "demopassword"}
 response = client.post("/api/auth/register", json=register_data)
 print(f"   URL: /api/auth/register")
 print(f"   Status Code: {response.status_code}")
@@ -36,10 +35,7 @@ print(f"   Status Code: {response.status_code}")
 # 4. 認証ありでアクセス
 print("\n4. 認証ありでアクセス:")
 # ログイン
-login_response = client.post(
-    "/api/auth/login",
-    data={"username": "demo@example.com", "password": "demopassword"}
-)
+login_response = client.post("/api/auth/login", data={"username": "demo@example.com", "password": "demopassword"})
 token = login_response.json()["access_token"]
 headers = {"Authorization": f"Bearer {token}"}
 

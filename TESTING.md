@@ -2,12 +2,15 @@
 
 このドキュメントでは、バックエンドとフロントエンドのテストの実行方法について説明します。
 
+> 💡 **関連ドキュメント**: [Backend Development Guide](backend/DEVELOPMENT.md) - より詳細な開発ガイド
+
 ## 📋 目次
 
 - [バックエンドテスト](#バックエンドテスト)
 - [フロントエンドテスト](#フロントエンドテスト)
 - [CI/CD](#cicd)
 - [テストカバレッジ](#テストカバレッジ)
+- [テストのベストプラクティス](#テストのベストプラクティス)
 
 ## 🐍 バックエンドテスト
 
@@ -15,10 +18,32 @@
 
 ```bash
 cd backend
+
+# 本番用依存関係のみ
 pip install -r requirements.txt
+
+# 開発用依存関係（テストツール含む）- 推奨
+pip install -r requirements-dev.txt
 ```
 
 ### テストの実行
+
+#### Makefileを使用（推奨）
+
+```bash
+cd backend
+
+# テストのみ実行
+make test
+
+# カバレッジレポート付き（HTMLレポート生成）
+make test-cov
+
+# すべてのチェック（フォーマット、Lint、セキュリティ、テスト）
+make check-all
+```
+
+#### 直接pytestを使用
 
 ```bash
 # すべてのテストを実行
@@ -38,6 +63,9 @@ pytest tests/test_todo.py::TestTodoEndpoints
 
 # 特定のテスト関数を実行
 pytest tests/test_todo.py::TestTodoEndpoints::test_create_todo
+
+# 並列実行（高速化）
+pytest -n auto
 ```
 
 ### テストカバレッジの確認
@@ -61,7 +89,12 @@ docker-compose run --rm backend pytest
 
 # カバレッジ付きで実行
 docker-compose run --rm backend pytest --cov=app --cov-report=term
+
+# Makefileコマンドも使用可能
+docker-compose run --rm backend make test-cov
 ```
+
+> 📚 **詳細情報**: [Pytest Guide](backend/PYTEST_GUIDE.md) - Pytestの詳細な使い方
 
 ## ⚛️ フロントエンドテスト
 
@@ -124,29 +157,47 @@ docker-compose run --rm frontend npm run test:coverage
 
 `.github/workflows/ci.yml` に以下のジョブが定義されています：
 
-1. **backend-test**: バックエンドのテストを実行
-2. **frontend-test**: フロントエンドのテストを実行
-3. **lint**: コードの静的解析を実行
-4. **docker-build**: Dockerイメージのビルドをテスト
+1. **backend-test**: バックエンドのテストを実行（pytest + coverage）
+2. **frontend-test**: フロントエンドのテストを実行（Jest + coverage）
+3. **backend-lint**: コードスタイルチェック（flake8, black, isort, mypy）
+4. **frontend-lint**: フロントエンドLint（準備中）
+5. **security-scan**: セキュリティスキャン（pip-audit, npm audit）
+6. **docker-build**: Dockerイメージのビルドをテスト
 
 ### ローカルでCI環境を再現
 
-```bash
-# バックエンド
-cd backend
-pip install -r requirements.txt
-pytest --cov=app --cov-report=xml
-flake8 app/ --max-line-length=120
+#### バックエンド（推奨: Makefileを使用）
 
-# フロントエンド
+```bash
+cd backend
+
+# CI/CDと同じチェックをすべて実行
+make check-all
+
+# 個別に実行
+pip install -r requirements-dev.txt
+make format-check  # フォーマットチェック
+make lint          # flake8, mypy
+make security      # pip-audit
+make test-cov      # pytest + coverage
+```
+
+#### フロントエンド
+
+```bash
 cd frontend
 npm ci
 npm run test:coverage
+```
 
-# Docker
+#### Docker
+
+```bash
 docker build -t todo-backend:test ./backend
 docker build -t todo-frontend:test ./frontend
 ```
+
+> 💡 **Tip**: コミット前に `cd backend && make check-all` を実行することで、CI/CDでのエラーを防げます。
 
 ## 📊 テストカバレッジ
 
@@ -203,18 +254,37 @@ All files           |   85.5  |   78.2   |   82.1  |   86.3  |
    ```python
    def test_create_todo(client, auth_headers):
        # Arrange: テストデータを準備
-       todo_data = {"title": "Test", "completed": False}
+       todo_data = {"title": "Test Todo", "description": "Test", "completed": False}
        
        # Act: 実行
-       response = client.post("/api/todos", json=todo_data, headers=auth_headers)
+       response = client.post("/todos", json=todo_data, headers=auth_headers)
        
        # Assert: 検証
        assert response.status_code == 200
+       assert response.json()["title"] == "Test Todo"
    ```
 
 2. **フィクスチャ**を活用してコードの重複を削減
+   - `conftest.py` で共通のフィクスチャを定義
+   - 認証ヘッダー、テストクライアント、データベースセッションなど
 
-3. **エッジケース**もテスト（空の入力、不正な形式など）
+3. **エッジケース**もテスト
+   - 空の入力、不正な形式
+   - 認証なしのアクセス
+   - 存在しないリソースへのアクセス
+   - 境界値のテスト
+
+4. **テストクラス**で関連するテストをグループ化
+   ```python
+   class TestTodoEndpoints:
+       def test_create_todo(self, client, auth_headers):
+           ...
+       
+       def test_get_todos(self, client, auth_headers):
+           ...
+   ```
+
+> 📚 **詳細**: [Pytest Guide](backend/PYTEST_GUIDE.md) でより詳しいパターンを紹介
 
 ### フロントエンド
 
@@ -238,10 +308,26 @@ All files           |   85.5  |   78.2   |   82.1  |   86.3  |
 
 **問題**: `ModuleNotFoundError: No module named 'app'`
 
-**解決**: PYTHONPATHを設定するか、backendディレクトリから実行
+**解決**: backendディレクトリから実行するか、pytest.iniの設定を確認
 ```bash
 cd backend
-PYTHONPATH=. pytest
+pytest
+```
+
+**問題**: `flake8: command not found`
+
+**解決**: 開発用依存関係をインストール
+```bash
+cd backend
+pip install -r requirements-dev.txt
+```
+
+**問題**: テストは通るがカバレッジが低い
+
+**解決**: カバレッジレポートで未テスト箇所を確認
+```bash
+make test-cov
+open htmlcov/index.html
 ```
 
 ### フロントエンド
@@ -266,20 +352,43 @@ await waitFor(() => {
 
 ## 📚 参考リソース
 
-### バックエンド
+### プロジェクト内ドキュメント
+- **[Backend Development Guide](backend/DEVELOPMENT.md)** - コード品質、Lint、セキュリティ
+- **[Pytest Guide](backend/PYTEST_GUIDE.md)** - Pytestの詳細な使い方とパターン
+- **[Docker Guide](DOCKER.md)** - Docker環境でのテスト実行
+
+### 外部リソース
+
+#### バックエンド
 - [pytest公式ドキュメント](https://docs.pytest.org/)
 - [FastAPI Testing](https://fastapi.tiangolo.com/tutorial/testing/)
 - [pytest-cov](https://pytest-cov.readthedocs.io/)
 
-### フロントエンド
+#### フロントエンド
 - [React Testing Library](https://testing-library.com/react)
 - [Jest](https://jestjs.io/)
 - [MSW (Mock Service Worker)](https://mswjs.io/)
 
 ## 🎯 次のステップ
 
+現在の状態：
 1. ✅ ユニットテストの実装
-2. ✅ CI/CDパイプラインの構築
-3. 🔄 E2Eテストの追加（Playwright/Cypress）
-4. 🔄 パフォーマンステストの実装
-5. 🔄 セキュリティテストの追加
+2. ✅ CI/CDパイプラインの構築（GitHub Actions）
+3. ✅ コードカバレッジ測定
+4. ✅ Lint・フォーマットチェック
+5. ✅ セキュリティスキャン
+
+今後の改善案：
+1. 🔄 E2Eテストの追加（Playwright/Cypress）
+2. 🔄 パフォーマンステストの実装
+3. 🔄 ビジュアルリグレッションテスト
+4. 🔄 テストカバレッジ90%以上を目指す
+
+---
+
+## 🔗 関連ドキュメント
+
+- [README.md](README.md) - プロジェクト全体の概要
+- [DOCS.md](DOCS.md) - ドキュメントナビゲーション
+- [Backend Development Guide](backend/DEVELOPMENT.md) - 開発ガイド
+- [Docker Guide](DOCKER.md) - Docker環境

@@ -1,30 +1,40 @@
-# Getting Started with Create React App
+# Frontend (React + TypeScript)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
-
-In the project directory, you can run:
+## 🚀 Available Scripts
 
 ### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+開発サーバーを起動します。
+- URL: http://localhost:3000
+- ホットリロード有効
 
 ### `npm test`
+テストランナーをインタラクティブモードで起動します。
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### `npm run test:coverage`
+カバレッジレポート付きでテストを実行します。
 
 ### `npm run build`
+本番用ビルドを `build/` フォルダに生成します。
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📦 主な依存関係
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- **React 19** - UIライブラリ
+- **TypeScript** - 型安全性
+- **React Router** - ルーティング
+- **Axios** - HTTP通信
+- **@dnd-kit** - ドラッグ&ドロップ
+- **react-toastify** - トースト通知
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🧪 Testing
+
+- **Testing Library** - コンポーネントテスト
+- **Jest** - テストランナー
+
+詳細は [プロジェクトREADME](../README.md) を参照。
+
+## 📚 Learn More
+
+- [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started)
+- [React documentation](https://react.dev/)

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
+
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -11,13 +12,16 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # パスワードハッシュ化設定
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """パスワードの検証"""
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)  # type: ignore[no-any-return]
+
 
 def get_password_hash(password: str) -> str:
     """パスワードのハッシュ化"""
-    return pwd_context.hash(password)
+    return pwd_context.hash(password)  # type: ignore[no-any-return]
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """JWTアクセストークンの作成"""
@@ -29,6 +33,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 def verify_token(token: str) -> Optional[str]:
     """JWTトークンの検証"""

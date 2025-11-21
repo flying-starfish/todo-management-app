@@ -3,12 +3,13 @@ pytest チュートリアル用のサンプルテスト
 
 このファイルでpytestの基本的な使い方を学べます
 """
-import pytest
 
+import pytest
 
 # ============================================
 # 1. 基本的なテスト
 # ============================================
+
 
 def test_simple_assertion():
     """最もシンプルなテスト"""
@@ -35,15 +36,11 @@ def test_list_operations():
 # 2. フィクスチャの使用
 # ============================================
 
+
 @pytest.fixture
 def sample_user():
     """テスト用のユーザーデータを提供するフィクスチャ"""
-    return {
-        "id": 1,
-        "name": "Test User",
-        "email": "test@example.com",
-        "is_active": True
-    }
+    return {"id": 1, "name": "Test User", "email": "test@example.com", "is_active": True}
 
 
 def test_user_data(sample_user):
@@ -77,22 +74,29 @@ def test_completed_todos(sample_todo_list):
 # 3. パラメータ化テスト
 # ============================================
 
-@pytest.mark.parametrize("input,expected", [
-    (2, 4),
-    (3, 9),
-    (4, 16),
-    (5, 25),
-])
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        (2, 4),
+        (3, 9),
+        (4, 16),
+        (5, 25),
+    ],
+)
 def test_square(input, expected):
     """複数の入力値でテストを実行"""
-    assert input ** 2 == expected
+    assert input**2 == expected
 
 
-@pytest.mark.parametrize("priority,label", [
-    (0, "High"),
-    (1, "Medium"),
-    (2, "Low"),
-])
+@pytest.mark.parametrize(
+    "priority,label",
+    [
+        (0, "High"),
+        (1, "Medium"),
+        (2, "Low"),
+    ],
+)
 def test_priority_labels(priority, label):
     """優先度ラベルのマッピング"""
     priority_map = {0: "High", 1: "Medium", 2: "Low"}
@@ -102,6 +106,7 @@ def test_priority_labels(priority, label):
 # ============================================
 # 4. 例外のテスト
 # ============================================
+
 
 def divide(a, b):
     """除算関数（ゼロ除算チェック付き）"""
@@ -127,6 +132,7 @@ def test_divide_by_zero():
 # 5. クラスベースのテスト
 # ============================================
 
+
 class TestCalculator:
     """電卓機能のテストグループ"""
 
@@ -149,12 +155,7 @@ class TestTodoOperations:
     @pytest.fixture
     def todo(self):
         """各テストメソッドで使えるフィクスチャ"""
-        return {
-            "id": 1,
-            "title": "Test Task",
-            "completed": False,
-            "priority": 1
-        }
+        return {"id": 1, "title": "Test Task", "completed": False, "priority": 1}
 
     def test_todo_creation(self, todo):
         """Todoの初期状態"""
@@ -175,6 +176,7 @@ class TestTodoOperations:
 # ============================================
 # 6. マーカーの使用
 # ============================================
+
 
 @pytest.mark.slow
 def test_slow_operation():
@@ -199,15 +201,16 @@ def test_known_bug():
 # 7. セットアップとティアダウン
 # ============================================
 
+
 @pytest.fixture
 def resource_manager():
     """リソースの準備とクリーンアップ"""
     # Setup: テスト前の準備
     print("\n[Setup] リソースを準備")
     resource = {"data": [], "connection": "open"}
-    
+
     yield resource  # テストに渡す
-    
+
     # Teardown: テスト後のクリーンアップ
     print("[Teardown] リソースをクリーンアップ")
     resource["connection"] = "closed"
@@ -224,11 +227,12 @@ def test_use_resource(resource_manager):
 # 8. 近似値のテスト（浮動小数点）
 # ============================================
 
+
 def test_floating_point():
     """浮動小数点の比較"""
     # 直接比較はNG（0.1 + 0.2 は 0.30000000000000004）
     # assert 0.1 + 0.2 == 0.3  # 失敗する可能性
-    
+
     # pytest.approx を使う
     assert 0.1 + 0.2 == pytest.approx(0.3)
     assert 1.0 / 3.0 == pytest.approx(0.333, rel=1e-2)  # 相対誤差
@@ -236,7 +240,7 @@ def test_floating_point():
 
 # ============================================
 # 実行方法:
-# 
+#
 # すべてのテスト実行:
 #   pytest tests/test_tutorial.py -v
 #

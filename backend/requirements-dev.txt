@@ -1,0 +1,20 @@
+# Development Dependencies
+# Install with: pip install -r requirements-dev.txt
+
+# Include base requirements
+-r requirements.txt
+
+# Code Quality Tools
+flake8==7.0.0
+black==24.3.0
+isort==5.13.2
+
+# Security Scanning
+pip-audit==2.7.3
+
+# Type Checking
+mypy==1.9.0
+
+# Additional Testing Tools
+pytest-xdist==3.5.0  # Parallel test execution
+pytest-mock==3.14.0   # Enhanced mocking
