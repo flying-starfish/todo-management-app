@@ -14,7 +14,7 @@ beforeAll(() => {
     // if (typeof args[0] === 'string' && args[0].includes('Warning:')) {
     //   originalError(...args);
     // }
-    
+
     // すべてのconsole.errorを抑制
     return;
   };

@@ -17,9 +17,7 @@ jest.mock('./TodoEditPanel', () => {
       <div data-testid="edit-panel">
         <h3>Edit Panel</h3>
         <button onClick={onClose}>Close Panel</button>
-        <button onClick={() => onSave(todo.id, { title: 'Updated Title' })}>
-          Save Changes
-        </button>
+        <button onClick={() => onSave(todo.id, { title: 'Updated Title' })}>Save Changes</button>
       </div>
     );
   };
@@ -93,9 +91,7 @@ describe('TodoList Component', () => {
       render(<TodoList />);
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          expect.stringContaining('/api/todos')
-        );
+        expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('/api/todos'));
       });
     });
 
@@ -334,9 +330,7 @@ describe('TodoList Component', () => {
       fireEvent.change(searchInput, { target: { value: 'Test' } });
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          expect.stringContaining('search=Test')
-        );
+        expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('search=Test'));
       });
     });
   });
@@ -353,9 +347,7 @@ describe('TodoList Component', () => {
       fireEvent.click(completedButton);
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          expect.stringContaining('status=completed')
-        );
+        expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('status=completed'));
       });
     });
 
@@ -387,9 +379,7 @@ describe('TodoList Component', () => {
       fireEvent.click(highButton);
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          expect.stringContaining('priority=0')
-        );
+        expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('priority=0'));
       });
     });
   });
@@ -418,9 +408,7 @@ describe('TodoList Component', () => {
       fireEvent.click(nextButton);
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          expect.stringContaining('page=2')
-        );
+        expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('page=2'));
       });
     });
 
@@ -447,9 +435,7 @@ describe('TodoList Component', () => {
       fireEvent.click(prevButton);
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          expect.stringContaining('page=1')
-        );
+        expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('page=1'));
       });
     });
 
@@ -513,7 +499,7 @@ describe('TodoList Component', () => {
 
       await waitFor(() => {
         const checkboxes = screen.getAllByRole('checkbox');
-        checkboxes.forEach(checkbox => {
+        checkboxes.forEach((checkbox) => {
           expect(checkbox).toBeChecked();
         });
       });
@@ -541,7 +527,9 @@ describe('TodoList Component', () => {
       await waitFor(() => {
         // 一括操作ボタンを取得（bulk-btn クラスを持つもの）
         const bulkCompleteButtons = screen.getAllByRole('button', { name: 'Mark as Complete' });
-        const bulkCompleteButton = bulkCompleteButtons.find(btn => btn.classList.contains('bulk-btn'));
+        const bulkCompleteButton = bulkCompleteButtons.find((btn) =>
+          btn.classList.contains('bulk-btn')
+        );
         expect(bulkCompleteButton).toBeDefined();
         fireEvent.click(bulkCompleteButton!);
       });
@@ -697,9 +685,7 @@ describe('TodoList Component', () => {
       fireEvent.click(sortButton);
 
       await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledWith(
-          expect.stringContaining('sort_by=asc')
-        );
+        expect(mockApiClient.get).toHaveBeenCalledWith(expect.stringContaining('sort_by=asc'));
       });
     });
 
@@ -711,17 +697,21 @@ describe('TodoList Component', () => {
       });
 
       const sortButton = screen.getByRole('button', { name: /Sort by Priority: None/i });
-      
+
       // None → Asc
       fireEvent.click(sortButton);
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Sort by Priority: Ascending/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: /Sort by Priority: Ascending/i })
+        ).toBeInTheDocument();
       });
 
       // Asc → Desc
       fireEvent.click(sortButton);
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /Sort by Priority: Descending/i })).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: /Sort by Priority: Descending/i })
+        ).toBeInTheDocument();
       });
 
       // Desc → None

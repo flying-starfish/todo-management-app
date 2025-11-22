@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import axios from 'axios';
 import { setLogoutCallback } from '../utils/apiClient';
 
@@ -64,12 +71,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   // トークンの有効性を確認
-  const validateToken = useCallback(async (token: string): Promise<void> => {
-    const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
-  }, [API_BASE_URL]);
+  const validateToken = useCallback(
+    async (token: string): Promise<void> => {
+      const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+    },
+    [API_BASE_URL]
+  );
 
   // 初期化時にローカルストレージからトークンとユーザー情報を復元
   useEffect(() => {
@@ -80,10 +90,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         if (savedToken && savedUser) {
           const user = JSON.parse(savedUser);
-          
+
           // トークンが有効かどうかを確認
           await validateToken(savedToken);
-          
+
           setAuthState({
             user,
             token: savedToken,
@@ -91,14 +101,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             isAuthenticated: true,
           });
         } else {
-          setAuthState(prev => ({ ...prev, isLoading: false }));
+          setAuthState((prev) => ({ ...prev, isLoading: false }));
         }
       } catch (error) {
         console.error('認証の初期化に失敗しました:', error);
         // 無効なトークンの場合はクリア
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
-        setAuthState(prev => ({ ...prev, isLoading: false }));
+        setAuthState((prev) => ({ ...prev, isLoading: false }));
       }
     };
 
@@ -111,7 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // ログイン処理
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
+      setAuthState((prev) => ({ ...prev, isLoading: true }));
 
       // フォームデータとして送信
       const formData = new FormData();
@@ -142,12 +152,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated: true,
       });
     } catch (error) {
-      setAuthState(prev => ({ 
-        ...prev, 
+      setAuthState((prev) => ({
+        ...prev,
         isLoading: false,
         user: null,
         token: null,
-        isAuthenticated: false 
+        isAuthenticated: false,
       }));
       throw error;
     }
@@ -156,19 +166,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // 新規登録処理
   const register = async (data: RegisterData): Promise<void> => {
     try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
+      setAuthState((prev) => ({ ...prev, isLoading: true }));
 
       await axios.post(`${API_BASE_URL}/api/auth/register`, data);
 
       // 登録後に自動ログイン
       await login({ email: data.email, password: data.password });
     } catch (error) {
-      setAuthState(prev => ({ 
-        ...prev, 
+      setAuthState((prev) => ({
+        ...prev,
         isLoading: false,
         user: null,
         token: null,
-        isAuthenticated: false 
+        isAuthenticated: false,
       }));
       throw error;
     }
@@ -198,7 +208,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const user = response.data;
       localStorage.setItem(USER_KEY, JSON.stringify(user));
 
-      setAuthState(prev => ({ ...prev, user }));
+      setAuthState((prev) => ({ ...prev, user }));
     } catch (error) {
       console.error('ユーザー情報の取得に失敗しました:', error);
       logout();
@@ -213,11 +223,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     refreshUserInfo,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 // useAuth フック

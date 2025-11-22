@@ -20,7 +20,7 @@ export const Login = ({ onSwitchToRegister }: LoginProps) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -28,7 +28,7 @@ export const Login = ({ onSwitchToRegister }: LoginProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.email || !formData.password) {
       toast.error('メールアドレスとパスワードを入力してください');
       return;
@@ -38,14 +38,14 @@ export const Login = ({ onSwitchToRegister }: LoginProps) => {
       setIsLoading(true);
       await login(formData);
       toast.success('ログインしました');
-      
+
       // ログイン成功後にリダイレクト
       // ProtectedRouteから来た場合は元のページに、そうでなければ/に移動
       const from = (location.state as any)?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (error: any) {
       console.error('ログインエラー:', error);
-      
+
       if (error.response?.status === 401) {
         toast.error('メールアドレスまたはパスワードが間違っています');
       } else if (error.response?.data?.detail) {
@@ -79,7 +79,7 @@ export const Login = ({ onSwitchToRegister }: LoginProps) => {
               disabled={isLoading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password" className="form-label">
               パスワード

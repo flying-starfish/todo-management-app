@@ -16,7 +16,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return (
       <div className="loading-container">
         <div className="loading-spinner">
-          <div className="spinner"></div>
+          <div className="spinner" data-testid="loading-spinner"></div>
           <p>認証状態を確認中...</p>
         </div>
       </div>

@@ -1,324 +1,330 @@
 /* ToDo リスト全体のスタイル */
 .todo-list {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 0;
-    list-style: none;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 0;
+  list-style: none;
 }
 
 /* ToDo アイテムのスタイル */
 .todo-item {
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 10px;
-    background-color: #f9f9f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s ease;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 10px;
+  background-color: #f9f9f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: transform 0.2s ease;
 }
 
 /* 完了したタスクのスタイル */
 .todo-item.completed {
-    text-decoration: line-through;
-    color: gray;
-    background-color: #e0e0e0;
+  text-decoration: line-through;
+  color: gray;
+  background-color: #e0e0e0;
 }
 
 /* ドラッグ中のスタイル */
 .todo-item.dragging {
-    opacity: 0.5;
-    z-index: 1000;
+  opacity: 0.5;
+  z-index: 1000;
 }
 
 /* 選択されたTodoアイテムのスタイル */
 .todo-item.selected {
-    border-color: #007bff;
-    background-color: #e7f3ff;
+  border-color: #007bff;
+  background-color: #e7f3ff;
 }
 
 /* 優先度別のスタイル */
 .todo-item.priority-0 {
-    border-left: 5px solid #dc3545; /* 赤色 - 高優先度 */
+  border-left: 5px solid #dc3545; /* 赤色 - 高優先度 */
 }
 .todo-item.priority-1 {
-    border-left: 5px solid #ffc107; /* 黄色 - 中優先度 */
+  border-left: 5px solid #ffc107; /* 黄色 - 中優先度 */
 }
 .todo-item.priority-2 {
-    border-left: 5px solid #28a745; /* 緑色 - 低優先度 */
+  border-left: 5px solid #28a745; /* 緑色 - 低優先度 */
 }
 
 /* ホバー時のエフェクト */
 .todo-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* ボタンの基本スタイル */
 button {
-    background-color: #007bff; /* モダンな青色 */
-    color: white; /* テキストを白に */
-    border: none; /* 枠線をなくす */
-    border-radius: 8px; /* 角を丸める */
-    padding: 10px 20px; /* ボタンの内側の余白 */
-    font-size: 16px; /* テキストサイズ */
-    cursor: pointer; /* ホバー時にポインターを表示 */
-    transition: background-color 0.3s, transform 0.2s; /* ホバー時のアニメーション */
+  background-color: #007bff; /* モダンな青色 */
+  color: white; /* テキストを白に */
+  border: none; /* 枠線をなくす */
+  border-radius: 8px; /* 角を丸める */
+  padding: 10px 20px; /* ボタンの内側の余白 */
+  font-size: 16px; /* テキストサイズ */
+  cursor: pointer; /* ホバー時にポインターを表示 */
+  transition:
+    background-color 0.3s,
+    transform 0.2s; /* ホバー時のアニメーション */
 }
 
 /* ホバー時のエフェクト */
 button:hover {
-    background-color: #0056b3; /* 少し濃い青色に */
-    transform: translateY(-2px); /* ボタンが少し浮く */
+  background-color: #0056b3; /* 少し濃い青色に */
+  transform: translateY(-2px); /* ボタンが少し浮く */
 }
 
 /* 押下時のエフェクト */
 button:active {
-    background-color: #004494; /* さらに濃い青色に */
-    transform: translateY(0); /* ボタンが元の位置に戻る */
+  background-color: #004494; /* さらに濃い青色に */
+  transform: translateY(0); /* ボタンが元の位置に戻る */
 }
 
 /* 一括操作のスタイル */
 .bulk-actions {
-    max-width: 600px;
-    margin: 20px auto;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
 }
 
 .select-all {
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.select-all input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
+.select-all input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
 }
 
 .select-all label {
-    font-weight: bold;
-    color: #495057;
-    cursor: pointer;
+  font-weight: bold;
+  color: #495057;
+  cursor: pointer;
 }
 
 .bulk-action-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .bulk-btn {
-    padding: 8px 16px;
-    font-size: 14px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .bulk-btn.complete-btn {
-    background-color: #28a745;
-    color: white;
+  background-color: #28a745;
+  color: white;
 }
 
 .bulk-btn.complete-btn:hover {
-    background-color: #218838;
+  background-color: #218838;
 }
 
 .bulk-btn.incomplete-btn {
-    background-color: #ffc107;
-    color: #212529;
+  background-color: #ffc107;
+  color: #212529;
 }
 
 .bulk-btn.incomplete-btn:hover {
-    background-color: #e0a800;
+  background-color: #e0a800;
 }
 
 .bulk-btn.delete-btn {
-    background-color: #dc3545;
-    color: white;
+  background-color: #dc3545;
+  color: white;
 }
 
 .bulk-btn.delete-btn:hover {
-    background-color: #c82333;
+  background-color: #c82333;
 }
 
 /* Todo アイテム内のチェックボックススタイル */
 .todo-checkbox {
-    width: 18px;
-    height: 18px;
-    margin-right: 10px;
-    cursor: pointer;
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  cursor: pointer;
 }
 
 /* 無効化されたボタン */
 button:disabled {
-    background-color: #cccccc; /* グレーに */
-    color: #666666; /* テキストも薄く */
-    cursor: not-allowed; /* カーソルを変更 */
+  background-color: #cccccc; /* グレーに */
+  color: #666666; /* テキストも薄く */
+  cursor: not-allowed; /* カーソルを変更 */
 }
 
 /* フィルタリングボタンの特別なスタイル */
 button.filter-btn {
-    margin-right: 10px; /* ボタン間の余白 */
+  margin-right: 10px; /* ボタン間の余白 */
 }
 
 /* ボタンをレスポンシブに */
 button {
-    width: 100%; /* モバイルでは幅を100%に */
-    max-width: 200px; /* デスクトップでは最大幅を制限 */
+  width: 100%; /* モバイルでは幅を100%に */
+  max-width: 200px; /* デスクトップでは最大幅を制限 */
 }
 
 /* 完了ボタン */
 button.complete-btn {
-    background-color: green;
-    color: white;
-    margin-right: 10px;
+  background-color: green;
+  color: white;
+  margin-right: 10px;
 }
 
 /* 削除ボタン */
 button.delete-btn {
-    background-color: red;
-    color: white;
+  background-color: red;
+  color: white;
 }
 
 /* テキストボックスの基本スタイル */
-input[type="text"] {
-    width: 100%; /* 幅を100%に */
-    max-width: 400px; /* 最大幅を制限 */
-    padding: 10px 15px; /* 内側の余白を設定 */
-    font-size: 16px; /* テキストサイズを設定 */
-    border: 1px solid #ccc; /* 薄いグレーの枠線 */
-    border-radius: 8px; /* 角を丸める */
-    outline: none; /* デフォルトのフォーカス枠を削除 */
-    transition: border-color 0.3s, box-shadow 0.3s; /* フォーカス時のアニメーション */
+input[type='text'] {
+  width: 100%; /* 幅を100%に */
+  max-width: 400px; /* 最大幅を制限 */
+  padding: 10px 15px; /* 内側の余白を設定 */
+  font-size: 16px; /* テキストサイズを設定 */
+  border: 1px solid #ccc; /* 薄いグレーの枠線 */
+  border-radius: 8px; /* 角を丸める */
+  outline: none; /* デフォルトのフォーカス枠を削除 */
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s; /* フォーカス時のアニメーション */
 }
 
 /* フォーカス時のスタイル */
-input[type="text"]:focus {
-    border-color: #007bff; /* フォーカス時に青色の枠線 */
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* 青色のぼかし影を追加 */
+input[type='text']:focus {
+  border-color: #007bff; /* フォーカス時に青色の枠線 */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* 青色のぼかし影を追加 */
 }
 
 /* プレースホルダーのスタイル */
-input[type="text"]::placeholder {
-    color: #aaa; /* プレースホルダーの色を薄いグレーに */
-    font-style: italic; /* イタリック体で表示 */
+input[type='text']::placeholder {
+  color: #aaa; /* プレースホルダーの色を薄いグレーに */
+  font-style: italic; /* イタリック体で表示 */
 }
 
 /* エラー時のスタイル */
-input[type="text"].error {
-    border-color: red; /* エラー時に赤い枠線 */
-    box-shadow: 0 0 5px rgba(255, 0, 0, 0.5); /* 赤いぼかし影を追加 */
+input[type='text'].error {
+  border-color: red; /* エラー時に赤い枠線 */
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5); /* 赤いぼかし影を追加 */
 }
 
 /* セレクトボックスの基本スタイル */
 select {
-    width: 100%; /* 幅を100%に */
-    max-width: 400px; /* 最大幅を制限 */
-    padding: 10px 15px; /* 内側の余白を設定 */
-    font-size: 16px; /* テキストサイズを設定 */
-    border: 1px solid #ccc; /* 薄いグレーの枠線 */
-    border-radius: 8px; /* 角を丸める */
-    outline: none; /* デフォルトのフォーカス枠を削除 */
-    background-color: white; /* 背景色を白に */
-    cursor: pointer; /* カーソルをポインターに */
-    transition: border-color 0.3s, box-shadow 0.3s; /* フォーカス時のアニメーション */
-    appearance: none; /* ブラウザのデフォルトスタイルを削除 */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 20px;
-    padding-right: 40px; /* 矢印アイコンのスペースを確保 */
+  width: 100%; /* 幅を100%に */
+  max-width: 400px; /* 最大幅を制限 */
+  padding: 10px 15px; /* 内側の余白を設定 */
+  font-size: 16px; /* テキストサイズを設定 */
+  border: 1px solid #ccc; /* 薄いグレーの枠線 */
+  border-radius: 8px; /* 角を丸める */
+  outline: none; /* デフォルトのフォーカス枠を削除 */
+  background-color: white; /* 背景色を白に */
+  cursor: pointer; /* カーソルをポインターに */
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s; /* フォーカス時のアニメーション */
+  appearance: none; /* ブラウザのデフォルトスタイルを削除 */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
+  padding-right: 40px; /* 矢印アイコンのスペースを確保 */
 }
 
 /* フォーカス時のスタイル */
 select:focus {
-    border-color: #007bff; /* フォーカス時に青色の枠線 */
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* 青色のぼかし影を追加 */
+  border-color: #007bff; /* フォーカス時に青色の枠線 */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* 青色のぼかし影を追加 */
 }
 
 /* ホバー時のスタイル */
 select:hover {
-    border-color: #888; /* ホバー時に少し濃いグレーの枠線 */
+  border-color: #888; /* ホバー時に少し濃いグレーの枠線 */
 }
 
 /* ドラッグ&ドロップ用のスタイル */
 .drag-handle {
-    cursor: grab;
-    padding: 10px;
-    color: #666;
-    font-size: 18px;
-    user-select: none;
-    margin-right: 10px;
+  cursor: grab;
+  padding: 10px;
+  color: #666;
+  font-size: 18px;
+  user-select: none;
+  margin-right: 10px;
 }
 
 /* 無効化時のスタイル */
 .drag-handle.disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 /* 押下時のスタイル */
 .drag-handle:active {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 /* Todoコンテンツエリア */
 .todo-content {
-    flex: 1;
-    min-width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 /* 編集可能なタイトル */
 .editable-title {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    padding: 4px 8px;
-    border-radius: 4px;
-    margin: 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 0;
 }
 
 .editable-title:hover {
-    background-color: rgba(0, 123, 255, 0.1);
+  background-color: rgba(0, 123, 255, 0.1);
 }
 
 /* インライン編集用のインプット */
 .inline-edit-input {
-    width: 100%;
-    padding: 6px 10px;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border: 2px solid #4a90e2;
-    border-radius: 4px;
-    outline: none;
-    font-family: inherit;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border: 2px solid #4a90e2;
+  border-radius: 4px;
+  outline: none;
+  font-family: inherit;
 }
 
 /* Todoアクションボタンエリア */
 .todo-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* 編集ボタン */
 .edit-btn {
-    background-color: #6c757d;
-    padding: 8px 16px;
-    font-size: 14px;
+  background-color: #6c757d;
+  padding: 8px 16px;
+  font-size: 14px;
 }
 
 .edit-btn:hover {
-    background-color: #5a6268;
+  background-color: #5a6268;
 }
 
 .edit-btn:active {
-    background-color: #495057;
+  background-color: #495057;
 }

@@ -130,8 +130,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .auth-switch {
@@ -173,16 +177,16 @@
   .auth-container {
     padding: 15px;
   }
-  
+
   .auth-card {
     padding: 30px 20px;
   }
-  
+
   .auth-title {
     font-size: 20px;
     margin-bottom: 25px;
   }
-  
+
   .form-input {
     font-size: 16px; /* iOS のズーム防止 */
   }

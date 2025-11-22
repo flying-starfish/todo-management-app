@@ -11,7 +11,8 @@
 👉 **[backend/DEVELOPMENT.md](backend/DEVELOPMENT.md)** - Lint、テスト、コード品質管理の完全ガイド
 
 ### フロントエンド開発者
-👉 **[frontend/README.md](frontend/README.md)** - React開発の基本コマンド
+👉 **[frontend/README.md](frontend/README.md)** - React開発の基本コマンド  
+👉 **[frontend/Makefile](frontend/Makefile)** - Lint、フォーマット、型チェックのコマンド
 
 ### テストを書く・実行する
 👉 **[TESTING.md](TESTING.md)** - テスト戦略とベストプラクティス  
@@ -47,8 +48,11 @@
 | ファイル | 内容 |
 |---------|------|
 | **README.md** | React開発の基本コマンドと依存関係 |
+| **Makefile** | Lint/フォーマット/型チェック便利コマンド |
 | **package.json** | npm依存関係とスクリプト |
 | **tsconfig.json** | TypeScript設定 |
+| **.eslintrc.json** | ESLint設定 |
+| **.prettierrc.json** | Prettier設定 |
 
 ### .github/workflows/
 | ファイル | 内容 |
@@ -64,8 +68,9 @@
 2. [backend/DEVELOPMENT.md](backend/DEVELOPMENT.md) - 開発ツールのセットアップ
 
 ### コード品質
-1. [backend/DEVELOPMENT.md](backend/DEVELOPMENT.md) - Lint/フォーマット/型チェック
-2. [backend/Makefile](backend/Makefile) - 便利コマンド
+1. [backend/DEVELOPMENT.md](backend/DEVELOPMENT.md) - バックエンドのLint/フォーマット/型チェック
+2. [backend/Makefile](backend/Makefile) - バックエンドの便利コマンド
+3. [frontend/Makefile](frontend/Makefile) - フロントエンドの便利コマンド
 
 ### テスト
 1. [TESTING.md](TESTING.md) - 全体戦略
@@ -89,7 +94,8 @@ A: [backend/PYTEST_GUIDE.md](backend/PYTEST_GUIDE.md) と [TESTING.md](TESTING.m
 A: [backend/DEVELOPMENT.md](backend/DEVELOPMENT.md) の「CI/CDとの連携」セクションを参照
 
 ### Q: コミット前に何をすべき？
-A: バックエンドの変更なら `cd backend && make check-all` を実行
+A: バックエンドの変更なら `cd backend && make check-all` を実行  
+A: フロントエンドの変更なら `cd frontend && make check-all` を実行
 
 ---
 

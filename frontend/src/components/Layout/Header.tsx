@@ -43,25 +43,23 @@ export const Header = () => {
         <div className="header-left">
           <h1 className="header-title">Todo Management</h1>
         </div>
-        
+
         <div className="header-right">
           {user && (
             <div className="user-menu" ref={dropdownRef}>
-              <button 
+              <button
                 className="user-button"
                 onClick={toggleDropdown}
                 aria-expanded={isDropdownOpen}
                 aria-haspopup="true"
                 aria-label="user menu button"
               >
-                <div className="user-avatar">
-                  {getUserInitial(user.email)}
-                </div>
+                <div className="user-avatar">{getUserInitial(user.email)}</div>
                 <span className="user-email">{user.email}</span>
-                <svg 
+                <svg
                   className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`}
-                  width="12" 
-                  height="12" 
+                  width="12"
+                  height="12"
                   viewBox="0 0 12 12"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -75,14 +73,12 @@ export const Header = () => {
                   />
                 </svg>
               </button>
-              
+
               {isDropdownOpen && (
                 <div className="dropdown-menu">
                   <div className="dropdown-header">
                     <div className="user-info">
-                      <div className="user-avatar-large">
-                        {getUserInitial(user.email)}
-                      </div>
+                      <div className="user-avatar-large">{getUserInitial(user.email)}</div>
                       <div className="user-details">
                         <div className="user-email-full">{user.email}</div>
                         <div className="user-status">
@@ -91,17 +87,14 @@ export const Header = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="dropdown-divider"></div>
-                  
+
                   <div className="dropdown-actions">
-                    <button 
-                      className="dropdown-item logout-button"
-                      onClick={handleLogout}
-                    >
-                      <svg 
-                        width="16" 
-                        height="16" 
+                    <button className="dropdown-item logout-button" onClick={handleLogout}>
+                      <svg
+                        width="16"
+                        height="16"
                         viewBox="0 0 16 16"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"

@@ -76,8 +76,8 @@ describe('ProtectedRoute Component', () => {
         </ProtectedRoute>
       );
 
-      const spinner = screen.getByText('認証状態を確認中...').previousSibling;
-      expect(spinner).toHaveClass('spinner');
+      expect(screen.getByText('認証状態を確認中...')).toBeInTheDocument();
+      expect(screen.getByTestId('loading-spinner')).toHaveClass('spinner');
     });
   });
 

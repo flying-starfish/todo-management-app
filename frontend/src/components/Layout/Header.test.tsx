@@ -87,30 +87,30 @@ describe('Header Component', () => {
 
     test('ドロップダウンメニューをクリックで開閉できる', () => {
       render(<Header />);
-      
+
       const userButton = screen.getByRole('button', { name: /user menu button/i });
-      
+
       // ドロップダウンが最初は閉じていることを確認（ログアウトボタンが表示されていない）
       expect(screen.queryByRole('button', { name: /ログアウト/i })).not.toBeInTheDocument();
-      
+
       // クリックして開く
       fireEvent.click(userButton);
-      
+
       // ログアウトボタンが表示される
       expect(screen.getByRole('button', { name: /ログアウト/i })).toBeInTheDocument();
     });
 
     test('ログアウトボタンをクリックするとログアウト処理が実行される', async () => {
       mockToast.success = jest.fn();
-      
+
       render(<Header />);
-      
+
       const userButton = screen.getByRole('button', { name: /user menu button/i });
       fireEvent.click(userButton);
-      
+
       const logoutButton = screen.getByRole('button', { name: /ログアウト/i });
       fireEvent.click(logoutButton);
-      
+
       await waitFor(() => {
         expect(mockLogout).toHaveBeenCalledTimes(1);
         expect(mockToast.success).toHaveBeenCalledWith('ログアウトしました');
@@ -119,16 +119,16 @@ describe('Header Component', () => {
 
     test('ドロップダウンの外側をクリックするとメニューが閉じる', async () => {
       render(<Header />);
-      
+
       const userButton = screen.getByRole('button', { name: /user menu button/i });
       fireEvent.click(userButton);
-      
+
       // ドロップダウンが開いていることを確認
       expect(screen.getByRole('button', { name: /ログアウト/i })).toBeInTheDocument();
-      
+
       // 外側をクリック
       fireEvent.mouseDown(document.body);
-      
+
       await waitFor(() => {
         expect(screen.queryByRole('button', { name: /ログアウト/i })).not.toBeInTheDocument();
       });

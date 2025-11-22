@@ -1,0 +1,7 @@
+node_modules
+build
+dist
+coverage
+public
+react-app-env.d.ts
+setupTests.ts

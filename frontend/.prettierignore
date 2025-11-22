@@ -1,0 +1,19 @@
+# Dependencies
+node_modules
+package-lock.json
+
+# Build outputs
+build
+dist
+coverage
+
+# Config files
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+
+# Misc
+.DS_Store
+*.log

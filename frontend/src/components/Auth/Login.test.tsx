@@ -11,10 +11,10 @@ jest.mock('react-toastify');
 
 // react-router-domのモック
 const mockNavigate = jest.fn();
-const mockLocation: { 
-  pathname: string; 
-  search: string; 
-  hash: string; 
+const mockLocation: {
+  pathname: string;
+  search: string;
+  hash: string;
   state: any;
   key: string;
 } = {
@@ -41,7 +41,7 @@ describe('Login Component', () => {
     jest.clearAllMocks();
     mockNavigate.mockClear();
     mockLocation.state = null;
-    
+
     mockUseAuth.mockReturnValue({
       user: null,
       token: null,
@@ -129,7 +129,9 @@ describe('Login Component', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('メールアドレスとパスワードを入力してください');
+        expect(mockToast.error).toHaveBeenCalledWith(
+          'メールアドレスとパスワードを入力してください'
+        );
       });
 
       expect(mockLogin).not.toHaveBeenCalled();
@@ -145,7 +147,9 @@ describe('Login Component', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('メールアドレスとパスワードを入力してください');
+        expect(mockToast.error).toHaveBeenCalledWith(
+          'メールアドレスとパスワードを入力してください'
+        );
       });
 
       expect(mockLogin).not.toHaveBeenCalled();
@@ -158,7 +162,9 @@ describe('Login Component', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('メールアドレスとパスワードを入力してください');
+        expect(mockToast.error).toHaveBeenCalledWith(
+          'メールアドレスとパスワードを入力してください'
+        );
       });
 
       expect(mockLogin).not.toHaveBeenCalled();
@@ -233,7 +239,9 @@ describe('Login Component', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('メールアドレスまたはパスワードが間違っています');
+        expect(mockToast.error).toHaveBeenCalledWith(
+          'メールアドレスまたはパスワードが間違っています'
+        );
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -289,7 +297,7 @@ describe('Login Component', () => {
 
   describe('ローディング状態', () => {
     test('ログイン処理中はローディング状態になる', async () => {
-      mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+      mockLogin.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
       render(<Login onSwitchToRegister={mockOnSwitchToRegister} />);
 
@@ -313,7 +321,7 @@ describe('Login Component', () => {
     });
 
     test('ローディング中は新規登録ボタンが無効化される', async () => {
-      mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+      mockLogin.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
       render(<Login onSwitchToRegister={mockOnSwitchToRegister} />);
 
@@ -344,7 +352,7 @@ describe('Login Component', () => {
     });
 
     test('ローディング中は新規登録ボタンがクリックできない', async () => {
-      mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+      mockLogin.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
       render(<Login onSwitchToRegister={mockOnSwitchToRegister} />);
 

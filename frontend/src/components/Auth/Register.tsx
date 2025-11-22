@@ -21,7 +21,7 @@ export const Register = ({ onSwitchToLogin }: RegisterProps) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -54,7 +54,7 @@ export const Register = ({ onSwitchToLogin }: RegisterProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -66,13 +66,13 @@ export const Register = ({ onSwitchToLogin }: RegisterProps) => {
         password: formData.password,
       });
       toast.success('アカウントを作成しました');
-      
+
       // 登録成功後にリダイレクト
       const from = (location.state as any)?.from?.pathname || '/';
       navigate(from, { replace: true });
     } catch (error: any) {
       console.error('登録エラー:', error);
-      
+
       if (error.response?.status === 400) {
         if (error.response.data?.detail?.includes('email')) {
           toast.error('このメールアドレスは既に登録されています');
@@ -110,7 +110,7 @@ export const Register = ({ onSwitchToLogin }: RegisterProps) => {
               disabled={isLoading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password" className="form-label">
               パスワード

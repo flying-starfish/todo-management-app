@@ -125,7 +125,7 @@ jobs:
 
   # フロントエンドのリンターチェック
   frontend-lint:
-    name: Frontend Lint Check
+    name: Frontend Lint & Format Check
     runs-on: ubuntu-latest
     
     steps:
@@ -145,8 +145,15 @@ jobs:
 
     - name: Run ESLint
       working-directory: ./frontend
-      run: npm run lint --if-present
-      continue-on-error: true
+      run: npm run lint
+
+    - name: Check Prettier formatting
+      working-directory: ./frontend
+      run: npm run format:check
+
+    - name: Run TypeScript type check
+      working-directory: ./frontend
+      run: npm run type-check
 
   # セキュリティスキャン
   security-scan:

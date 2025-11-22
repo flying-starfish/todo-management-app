@@ -141,10 +141,32 @@ make test-cov
 - [開発ガイド](backend/DEVELOPMENT.md) - Lint、テスト、コード品質管理
 
 ### Frontend Development
+
+**クイックコマンド:**
+```bash
+cd frontend
+
+# すべてのチェック（フォーマット、Lint、型チェック、テスト）
+make check-all
+
+# コード自動整形
+make format
+
+# Lintチェック
+make lint
+
+# 型チェック
+make type-check
+
+# テスト（カバレッジ付き）
+make test-cov
+```
+
+**開発環境の特徴:**
 - Hot reload is enabled in development mode
 - TypeScript is configured for type checking
+- ESLint + Prettier for code quality
 - CSS modules are available for component styling
-- Test coverage: `npm run test:coverage`
 
 ## 📝 API Endpoints
 
@@ -157,12 +179,21 @@ make test-cov
 
 このプロジェクトでは以下のツールでコード品質を保証しています：
 
+### Backend (Python)
 - **Linting**: flake8（PEP8準拠）
 - **Formatting**: black, isort
 - **Type Checking**: mypy
 - **Testing**: pytest（カバレッジ測定付き）
-- **Security**: pip-audit, safety
-- **CI/CD**: GitHub Actions（自動テスト・Lint）
+- **Security**: pip-audit
+
+### Frontend (TypeScript/React)
+- **Linting**: ESLint with TypeScript rules
+- **Formatting**: Prettier
+- **Type Checking**: TypeScript compiler
+- **Testing**: Jest + React Testing Library
+
+### CI/CD
+- **GitHub Actions**: 自動テスト・Lint・型チェック・セキュリティスキャン
 
 詳細は [Backend Development Guide](backend/DEVELOPMENT.md) を参照。
 
