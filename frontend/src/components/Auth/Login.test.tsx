@@ -130,7 +130,7 @@ describe('Login Component', () => {
 
       const emailInput = screen.getByLabelText('メールアドレス') as HTMLInputElement;
       const passwordInput = screen.getByLabelText('パスワード');
-      
+
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
       // HTML5のrequired属性が設定されていることを確認
@@ -143,7 +143,7 @@ describe('Login Component', () => {
 
       const emailInput = screen.getByLabelText('メールアドレス');
       const passwordInput = screen.getByLabelText('パスワード') as HTMLInputElement;
-      
+
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
       // HTML5のrequired属性が設定されていることを確認
@@ -156,7 +156,7 @@ describe('Login Component', () => {
 
       const emailInput = screen.getByLabelText('メールアドレス') as HTMLInputElement;
       const passwordInput = screen.getByLabelText('パスワード') as HTMLInputElement;
-      
+
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
