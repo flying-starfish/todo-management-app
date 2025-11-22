@@ -1,11 +1,11 @@
-import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, type Mock } from 'vitest';
 import { AuthPage } from './AuthPage';
 import { useAuth } from '../../contexts/AuthContext';
 
 // 依存コンポーネントとContextをモック化
-jest.mock('./Login', () => ({
+vi.mock('./Login', () => ({
   __esModule: true,
   default: ({ onSwitchToRegister }: { onSwitchToRegister: () => void }) => (
     <div data-testid="login-component">
@@ -15,7 +15,7 @@ jest.mock('./Login', () => ({
   ),
 }));
 
-jest.mock('./Register', () => ({
+vi.mock('./Register', () => ({
   __esModule: true,
   default: ({ onSwitchToLogin }: { onSwitchToLogin: () => void }) => (
     <div data-testid="register-component">
@@ -25,23 +25,23 @@ jest.mock('./Register', () => ({
   ),
 }));
 
-jest.mock('../../contexts/AuthContext');
-jest.mock('react-toastify');
+vi.mock('../../contexts/AuthContext');
+vi.mock('react-toastify');
 
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+const mockUseAuth = useAuth as Mock<typeof useAuth>;
 
 describe('AuthPage Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // デフォルトのAuthContext設定
     mockUseAuth.mockReturnValue({
       user: null,
       token: null,
-      login: jest.fn(),
-      logout: jest.fn(),
-      register: jest.fn(),
-      refreshUserInfo: jest.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+      register: vi.fn(),
+      refreshUserInfo: vi.fn(),
       isAuthenticated: false,
       isLoading: false,
     });

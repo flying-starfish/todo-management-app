@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import { toast } from 'react-toastify';
 
 // APIのベースURL
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // LocalStorageのキー
 const TOKEN_KEY = 'jwt_token';

@@ -1,17 +1,18 @@
+import { vi } from 'vitest';
 import { setLogoutCallback } from './apiClient';
 
 describe('apiClient Utilities', () => {
   describe('setLogoutCallback', () => {
     test('ログアウトコールバックが正しく設定される', () => {
-      const mockLogout = jest.fn();
+      const mockLogout = vi.fn();
       setLogoutCallback(mockLogout);
       // setLogoutCallbackが正しく動作することを確認
       expect(mockLogout).not.toHaveBeenCalled();
     });
 
     test('異なるコールバック関数を設定できる', () => {
-      const mockLogout1 = jest.fn();
-      const mockLogout2 = jest.fn();
+      const mockLogout1 = vi.fn();
+      const mockLogout2 = vi.fn();
 
       setLogoutCallback(mockLogout1);
       setLogoutCallback(mockLogout2);

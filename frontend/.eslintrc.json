@@ -2,11 +2,9 @@
   "env": {
     "browser": true,
     "es2021": true,
-    "jest": true
+    "node": true
   },
   "extends": [
-    "react-app",
-    "react-app/jest",
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
@@ -25,7 +23,8 @@
     "react",
     "react-hooks",
     "@typescript-eslint",
-    "prettier"
+    "prettier",
+    "testing-library"
   ],
   "rules": {
     "react/react-in-jsx-scope": "off",
@@ -45,10 +44,19 @@
         "endOfLine": "auto"
       }
     ],
-    "testing-library/no-wait-for-multiple-assertions": "off",
-    "testing-library/no-wait-for-side-effects": "off",
-    "testing-library/no-node-access": "off"
+    "react-hooks/set-state-in-effect": "warn"
   },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx"],
+      "extends": ["plugin:testing-library/react"],
+      "rules": {
+        "testing-library/no-wait-for-multiple-assertions": "off",
+        "testing-library/no-wait-for-side-effects": "off",
+        "testing-library/no-node-access": "off"
+      }
+    }
+  ],
   "settings": {
     "react": {
       "version": "detect"

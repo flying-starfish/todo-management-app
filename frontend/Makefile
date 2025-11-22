@@ -33,10 +33,10 @@ type-check:
 	npm run type-check
 
 test:
-	npm test -- --watchAll=false
+	npm test -- --run
 
 test-cov:
-	npm test -- --coverage --watchAll=false
+	npm run test:coverage
 
 security:
 	@echo "Running npm audit..."

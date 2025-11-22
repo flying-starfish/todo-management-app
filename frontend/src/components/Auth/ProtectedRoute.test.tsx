@@ -1,11 +1,11 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, type Mock } from 'vitest';
 import { ProtectedRoute } from './ProtectedRoute';
 import { useAuth, User } from '../../contexts/AuthContext';
 
 // 依存関係をモック化
-jest.mock('../../contexts/AuthContext');
+vi.mock('../../contexts/AuthContext');
 
 // react-router-domのモック
 const mockLocationValue = {
@@ -16,7 +16,7 @@ const mockLocationValue = {
   key: 'default',
 };
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   Navigate: ({ to, state }: { to: string; state?: any }) => (
     <div data-testid="navigate" data-to={to} data-state={JSON.stringify(state)}>
       Navigate to {to}
@@ -25,7 +25,7 @@ jest.mock('react-router-dom', () => ({
   useLocation: () => mockLocationValue,
 }));
 
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+const mockUseAuth = useAuth as Mock<typeof useAuth>;
 
 // テスト用のユーザーデータ
 const createMockUser = (): User => ({
@@ -41,7 +41,7 @@ const TestChild = () => <div data-testid="protected-content">Protected Content</
 
 describe('ProtectedRoute Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('ローディング状態', () => {
@@ -49,10 +49,10 @@ describe('ProtectedRoute Component', () => {
       mockUseAuth.mockReturnValue({
         user: null,
         token: null,
-        login: jest.fn(),
-        logout: jest.fn(),
-        register: jest.fn(),
-        refreshUserInfo: jest.fn(),
+        login: vi.fn(),
+        logout: vi.fn(),
+        register: vi.fn(),
+        refreshUserInfo: vi.fn(),
         isAuthenticated: false,
         isLoading: true,
       });
@@ -86,10 +86,10 @@ describe('ProtectedRoute Component', () => {
       mockUseAuth.mockReturnValue({
         user: null,
         token: null,
-        login: jest.fn(),
-        logout: jest.fn(),
-        register: jest.fn(),
-        refreshUserInfo: jest.fn(),
+        login: vi.fn(),
+        logout: vi.fn(),
+        register: vi.fn(),
+        refreshUserInfo: vi.fn(),
         isAuthenticated: false,
         isLoading: false,
       });
@@ -135,10 +135,10 @@ describe('ProtectedRoute Component', () => {
       mockUseAuth.mockReturnValue({
         user: createMockUser(),
         token: 'mock-token',
-        login: jest.fn(),
-        logout: jest.fn(),
-        register: jest.fn(),
-        refreshUserInfo: jest.fn(),
+        login: vi.fn(),
+        logout: vi.fn(),
+        register: vi.fn(),
+        refreshUserInfo: vi.fn(),
         isAuthenticated: true,
         isLoading: false,
       });

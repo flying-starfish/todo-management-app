@@ -219,9 +219,10 @@ const TodoList = () => {
     setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
   };
 
-  const _goToPage = (page: number) => {
-    setCurrentPage(page);
-  };
+  // TODO: ページ番号指定での移動機能（将来実装予定）
+  // const goToPage = (page: number) => {
+  //   setCurrentPage(page);
+  // };
 
   // ドラッグ終了時の処理
   const handleDragEnd = (event: DragEndEvent) => {
@@ -373,8 +374,8 @@ const TodoList = () => {
 
     apiClient
       .put('/api/todos/bulk', requestBody)
-      .then((response) => {
-        const _data = response.data;
+      .then(() => {
+        // const data = response.data; // 現在未使用
         if (action === 'delete') {
           // 削除の場合は該当のtodoを配列から除去
           setTodos(todos.filter((todo) => !selectedTodos.has(todo.id)));

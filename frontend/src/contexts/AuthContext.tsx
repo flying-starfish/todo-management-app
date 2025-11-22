@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  ReactNode,
-} from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
 import { setLogoutCallback } from '../utils/apiClient';
 
@@ -68,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   });
 
   // APIのベースURL
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   // トークンの有効性を確認
   const validateToken = useCallback(
@@ -80,6 +73,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     },
     [API_BASE_URL]
   );
+
+  // ログアウト処理（useEffectより前に定義）
+  const logout = useCallback((): void => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setAuthState({
+      user: null,
+      token: null,
+      isLoading: false,
+      isAuthenticated: false,
+    });
+  }, []);
 
   // 初期化時にローカルストレージからトークンとユーザー情報を復元
   useEffect(() => {
@@ -116,7 +121,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setLogoutCallback(logout);
 
     initializeAuth();
-  }, []); // 依存配列を空にして初期化時のみ実行
+  }, [logout, validateToken]); // 依存関係を追加
 
   // ログイン処理
   const login = async (credentials: LoginCredentials): Promise<void> => {
@@ -183,18 +188,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       throw error;
     }
   };
-
-  // ログアウト処理
-  const logout = useCallback((): void => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setAuthState({
-      user: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
-    });
-  }, []);
 
   // ユーザー情報の再取得
   const refreshUserInfo = async (): Promise<void> => {

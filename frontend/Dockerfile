@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # 依存関係をインストール
-RUN npm install
+RUN npm ci
 
 # アプリケーションコードをコピー
 COPY . .
@@ -16,5 +16,5 @@ COPY . .
 # ポート3000を公開
 EXPOSE 3000
 
-# 開発サーバーを起動
-CMD ["npm", "start"]
+# 開発サーバーを起動（Vite）
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

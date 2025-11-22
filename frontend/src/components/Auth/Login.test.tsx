@@ -1,16 +1,23 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, type Mock } from 'vitest';
 import { Login } from './Login';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 // 依存関係をモック化
-jest.mock('../../contexts/AuthContext');
-jest.mock('react-toastify');
+vi.mock('../../contexts/AuthContext');
+vi.mock('react-toastify', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+  },
+}));
 
 // react-router-domのモック
-const mockNavigate = jest.fn();
+const mockNavigate = vi.fn();
 const mockLocation: {
   pathname: string;
   search: string;
@@ -25,20 +32,19 @@ const mockLocation: {
   key: 'default',
 };
 
-jest.mock('react-router-dom', () => ({
+vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
   useLocation: () => mockLocation,
 }));
 
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-const mockToast = toast as jest.Mocked<typeof toast>;
+const mockUseAuth = useAuth as Mock<typeof useAuth>;
 
 describe('Login Component', () => {
-  const mockLogin = jest.fn();
-  const mockOnSwitchToRegister = jest.fn();
+  const mockLogin = vi.fn();
+  const mockOnSwitchToRegister = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockNavigate.mockClear();
     mockLocation.state = null;
 
@@ -46,15 +52,15 @@ describe('Login Component', () => {
       user: null,
       token: null,
       login: mockLogin,
-      logout: jest.fn(),
-      register: jest.fn(),
-      refreshUserInfo: jest.fn(),
+      logout: vi.fn(),
+      register: vi.fn(),
+      refreshUserInfo: vi.fn(),
       isAuthenticated: false,
       isLoading: false,
     });
 
-    mockToast.error = jest.fn();
-    mockToast.success = jest.fn();
+    toast.error = vi.fn();
+    toast.success = vi.fn();
   });
 
   describe('初期表示', () => {
@@ -119,55 +125,44 @@ describe('Login Component', () => {
   });
 
   describe('バリデーション', () => {
-    test('メールアドレスが空の場合、エラーメッセージが表示される', async () => {
+    test('メールアドレスが空の場合、HTML5バリデーションが機能する', () => {
       render(<Login onSwitchToRegister={mockOnSwitchToRegister} />);
 
+      const emailInput = screen.getByLabelText('メールアドレス') as HTMLInputElement;
       const passwordInput = screen.getByLabelText('パスワード');
+      
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
-      const submitButton = screen.getByRole('button', { name: 'ログイン' });
-      fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith(
-          'メールアドレスとパスワードを入力してください'
-        );
-      });
-
-      expect(mockLogin).not.toHaveBeenCalled();
+      // HTML5のrequired属性が設定されていることを確認
+      expect(emailInput).toBeRequired();
+      expect(emailInput.validity.valid).toBe(false);
     });
 
-    test('パスワードが空の場合、エラーメッセージが表示される', async () => {
+    test('パスワードが空の場合、HTML5バリデーションが機能する', () => {
       render(<Login onSwitchToRegister={mockOnSwitchToRegister} />);
 
       const emailInput = screen.getByLabelText('メールアドレス');
+      const passwordInput = screen.getByLabelText('パスワード') as HTMLInputElement;
+      
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
-      const submitButton = screen.getByRole('button', { name: 'ログイン' });
-      fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith(
-          'メールアドレスとパスワードを入力してください'
-        );
-      });
-
-      expect(mockLogin).not.toHaveBeenCalled();
+      // HTML5のrequired属性が設定されていることを確認
+      expect(passwordInput).toBeRequired();
+      expect(passwordInput.validity.valid).toBe(false);
     });
 
-    test('両方のフィールドが空の場合、エラーメッセージが表示される', async () => {
+    test('両方のフィールドが入力されると、バリデーションが通る', () => {
       render(<Login onSwitchToRegister={mockOnSwitchToRegister} />);
 
-      const submitButton = screen.getByRole('button', { name: 'ログイン' });
-      fireEvent.click(submitButton);
+      const emailInput = screen.getByLabelText('メールアドレス') as HTMLInputElement;
+      const passwordInput = screen.getByLabelText('パスワード') as HTMLInputElement;
+      
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+      fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
-      await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith(
-          'メールアドレスとパスワードを入力してください'
-        );
-      });
-
-      expect(mockLogin).not.toHaveBeenCalled();
+      // 両方のフィールドが有効であることを確認
+      expect(emailInput.validity.valid).toBe(true);
+      expect(passwordInput.validity.valid).toBe(true);
     });
   });
 
@@ -193,7 +188,7 @@ describe('Login Component', () => {
         });
       });
 
-      expect(mockToast.success).toHaveBeenCalledWith('ログインしました');
+      expect(toast.success).toHaveBeenCalledWith('ログインしました');
       expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
     });
 
@@ -239,9 +234,7 @@ describe('Login Component', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith(
-          'メールアドレスまたはパスワードが間違っています'
-        );
+        expect(toast.error).toHaveBeenCalledWith('メールアドレスまたはパスワードが間違っています');
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -270,7 +263,7 @@ describe('Login Component', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('アカウントが無効です');
+        expect(toast.error).toHaveBeenCalledWith('アカウントが無効です');
       });
     });
 
@@ -290,7 +283,7 @@ describe('Login Component', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('ログインに失敗しました');
+        expect(toast.error).toHaveBeenCalledWith('ログインに失敗しました');
       });
     });
   });

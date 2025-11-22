@@ -16,7 +16,7 @@ services:
       - todo-network
     restart: unless-stopped
 
-  # フロントエンド (React)
+  # フロントエンド (React + Vite)
   frontend:
     build:
       context: ./frontend
@@ -28,9 +28,8 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8000
       - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
     depends_on:
       - backend
     networks:

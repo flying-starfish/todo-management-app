@@ -1,17 +1,25 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, type MockedObject } from 'vitest';
 import TodoList from './TodoList';
 import { apiClient } from '../../utils/apiClient';
 import { toast } from 'react-toastify';
 
 // 依存関係をモック化
-jest.mock('../../utils/apiClient');
-jest.mock('react-toastify');
+vi.mock('../../utils/apiClient');
+vi.mock('react-toastify', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+  },
+  ToastContainer: () => null,
+}));
 
 // TodoEditPanelをモック化
-jest.mock('./TodoEditPanel', () => {
-  return function MockTodoEditPanel({ isOpen, onClose, onSave, todo }: any) {
+vi.mock('./TodoEditPanel', () => ({
+  default: function MockTodoEditPanel({ isOpen, onClose, onSave, todo }: any) {
     if (!isOpen) return null;
     return (
       <div data-testid="edit-panel">
@@ -20,11 +28,10 @@ jest.mock('./TodoEditPanel', () => {
         <button onClick={() => onSave(todo.id, { title: 'Updated Title' })}>Save Changes</button>
       </div>
     );
-  };
-});
+  },
+}));
 
-const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
-const mockToast = toast as jest.Mocked<typeof toast>;
+const mockApiClient = apiClient as MockedObject<typeof apiClient>;
 
 // モックデータ
 const mockTodos = [
@@ -56,7 +63,7 @@ const mockTodos = [
 
 describe('TodoList Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // デフォルトのAPIレスポンス
     mockApiClient.get.mockResolvedValue({
@@ -70,10 +77,6 @@ describe('TodoList Component', () => {
       headers: {},
       config: {} as any,
     });
-
-    mockToast.success = jest.fn();
-    mockToast.error = jest.fn();
-    mockToast.warning = jest.fn();
   });
 
   describe('初期表示', () => {
@@ -172,7 +175,7 @@ describe('TodoList Component', () => {
           completed: false,
           priority: 1,
         });
-        expect(mockToast.success).toHaveBeenCalledWith('Todo added successfully!');
+        expect(toast.success).toHaveBeenCalledWith('Todo added successfully!');
       });
     });
 
@@ -209,7 +212,7 @@ describe('TodoList Component', () => {
       fireEvent.click(addButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to add todo.');
+        expect(toast.error).toHaveBeenCalledWith('Failed to add todo.');
       });
     });
   });
@@ -235,7 +238,7 @@ describe('TodoList Component', () => {
 
       await waitFor(() => {
         expect(mockApiClient.delete).toHaveBeenCalledWith('/api/todos/1');
-        expect(mockToast.success).toHaveBeenCalledWith('Todo deleted successfully!');
+        expect(toast.success).toHaveBeenCalledWith('Todo deleted successfully!');
       });
     });
 
@@ -252,7 +255,7 @@ describe('TodoList Component', () => {
       fireEvent.click(deleteButtons[0]);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('Failed to delete todo.');
+        expect(toast.error).toHaveBeenCalledWith('Failed to delete todo.');
       });
     });
   });
@@ -542,7 +545,7 @@ describe('TodoList Component', () => {
             action: 'complete',
           })
         );
-        expect(mockToast.success).toHaveBeenCalledWith('Updated 1 todos successfully!');
+        expect(toast.success).toHaveBeenCalledWith('Updated 1 todos successfully!');
       });
     });
 
@@ -578,7 +581,7 @@ describe('TodoList Component', () => {
             action: 'delete',
           })
         );
-        expect(mockToast.success).toHaveBeenCalledWith('Deleted 1 todos successfully!');
+        expect(toast.success).toHaveBeenCalledWith('Deleted 1 todos successfully!');
       });
     });
 
@@ -646,7 +649,7 @@ describe('TodoList Component', () => {
           '/api/todos/1',
           expect.objectContaining({ title: 'Updated Title' })
         );
-        expect(mockToast.success).toHaveBeenCalledWith('Todo updated successfully!');
+        expect(toast.success).toHaveBeenCalledWith('Todo updated successfully!');
       });
     });
 

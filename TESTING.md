@@ -108,11 +108,11 @@ npm install
 ### テストの実行
 
 ```bash
-# インタラクティブモードでテストを実行
+# インタラクティブモードでテストを実行（watch mode）
 npm test
 
-# すべてのテストを一度だけ実行
-npm test -- --watchAll=false
+# すべてのテストを一度だけ実行（CI/CD用）
+npm test -- --run
 
 # カバレッジレポート付きで実行
 npm run test:coverage
@@ -120,9 +120,17 @@ npm run test:coverage
 # 特定のテストファイルを実行
 npm test -- TodoList.test.tsx
 
+# 特定のテストファイルを一度だけ実行（watch modeなし）
+npm test -- Login.test.tsx --run
+
 # 特定のテストケースを実行
 npm test -- -t "renders todo list title"
 ```
+
+**注意**: 
+- Vitestでは`--watchAll=false`ではなく`--run`オプションを使用します（Jestとの違い）
+- `--run`なしで実行すると**watch mode**になり、ファイル変更を監視し続けます（`q`キーで終了）
+- watch mode中はスピナーアニメーション（⠙ ⠹ ⠸...）とテスト進行状況がリアルタイム表示されます
 
 ### テストカバレッジの確認
 
@@ -143,7 +151,7 @@ xdg-open coverage/lcov-report/index.html  # Linux
 docker-compose build frontend
 
 # テストを実行
-docker-compose run --rm frontend npm test -- --watchAll=false
+docker-compose run --rm frontend npm test -- --run
 
 # カバレッジ付きで実行
 docker-compose run --rm frontend npm run test:coverage
@@ -158,7 +166,7 @@ docker-compose run --rm frontend npm run test:coverage
 `.github/workflows/ci.yml` に以下のジョブが定義されています：
 
 1. **backend-test**: バックエンドのテストを実行（pytest + coverage）
-2. **frontend-test**: フロントエンドのテストを実行（Jest + coverage）
+2. **frontend-test**: フロントエンドのテストを実行（Vitest + coverage）
 3. **backend-lint**: バックエンドのコードスタイルチェック（flake8, black, isort, mypy）
 4. **frontend-lint**: フロントエンドのLint & Format（ESLint, Prettier, TypeScript）
 5. **backend-security**: バックエンドのセキュリティスキャン（pip-audit）
@@ -197,7 +205,7 @@ make format-check  # Prettierフォーマットチェック
 make lint          # ESLint
 make type-check    # TypeScript型チェック
 make security      # npm audit
-make test-cov      # Jest + coverage
+make test-cov      # Vitest + coverage
 ```
 
 #### Docker
@@ -236,7 +244,7 @@ app/endpoints/auth.py                60      3    95%   75-77
 TOTAL                               170     10    94%
 ```
 
-#### フロントエンド（Jest）
+#### フロントエンド（Vitest）
 
 ```bash
 npm run test:coverage
@@ -255,6 +263,8 @@ All files           |   85.5  |   78.2   |   82.1  |   86.3  |
   apiClient.ts      |   80.2  |   70.8   |   75.0  |   81.5  |
 --------------------|---------|----------|---------|---------|
 ```
+
+**jsdom環境の設定**: Vitestは`vitest.config.ts`で`environment: 'jsdom'`を設定しています。これはブラウザのDOM APIをNode.js環境でシミュレートするために必要で、React Testing Libraryの`render()`や`screen`などが正常に動作します。
 
 ## 🔍 テストのベストプラクティス
 
@@ -311,6 +321,33 @@ All files           |   85.5  |   78.2   |   82.1  |   86.3  |
    - `getByRole` > `getByLabelText` > `getByPlaceholderText` > `getByText` > `getByTestId`
 
 3. **非同期処理**は`waitFor`で適切にハンドリング
+
+4. **モックは`vi.mock()`のファクトリ関数で定義**（型安全性の向上）
+   ```typescript
+   // ❌ 悪い例: 二重型アサーションを使用
+   const mockToast = toast as unknown as { success: Mock; error: Mock; };
+   mockToast.success = vi.fn();
+   expect(mockToast.success).toHaveBeenCalled();
+   
+   // ✅ 良い例: vi.mock()のファクトリ関数でモックを定義
+   vi.mock('react-toastify', () => ({
+     toast: {
+       success: vi.fn(),
+       error: vi.fn(),
+       warning: vi.fn(),
+       info: vi.fn(),
+     },
+     ToastContainer: () => null,
+   }));
+   
+   // 直接使用（中間変数不要）
+   expect(toast.success).toHaveBeenCalledWith('Success message');
+   ```
+   
+   **利点**:
+   - 型安全性が向上（`as unknown as`のような危険なパターンを回避）
+   - コードが簡潔になる（中間変数が不要）
+   - テスト全体で一貫したモック動作を保証
 
 ## 🐛 トラブルシューティング
 
@@ -376,7 +413,8 @@ await waitFor(() => {
 
 #### フロントエンド
 - [React Testing Library](https://testing-library.com/react)
-- [Jest](https://jestjs.io/)
+- [Vitest](https://vitest.dev/)
+- [Vitest UI](https://vitest.dev/guide/ui.html)
 - [MSW (Mock Service Worker)](https://mswjs.io/)
 
 ## 🎯 次のステップ

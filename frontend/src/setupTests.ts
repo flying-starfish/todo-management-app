@@ -3,12 +3,19 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { afterEach, beforeAll, afterAll } from 'vitest';
+import { cleanup } from '@testing-library/react';
+
+// テスト後のクリーンアップ
+afterEach(() => {
+  cleanup();
+});
 
 // テスト全体でconsole.errorを抑制
 // エラーハンドリングのテストで意図的なエラーログを非表示にする
 const originalError = console.error;
 beforeAll(() => {
-  console.error = (...args: any[]) => {
+  console.error = (..._args: any[]) => {
     // 特定のエラーメッセージのみ抑制したい場合は、ここでフィルタリング可能
     // 例: Reactの警告は表示したい場合
     // if (typeof args[0] === 'string' && args[0].includes('Warning:')) {

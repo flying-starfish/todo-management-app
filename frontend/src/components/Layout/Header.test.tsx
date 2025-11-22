@@ -1,16 +1,22 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, type Mock } from 'vitest';
 import { Header } from './Header';
 import { useAuth, User } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 // AuthContextとtoastをモック化
-jest.mock('../../contexts/AuthContext');
-jest.mock('react-toastify');
+vi.mock('../../contexts/AuthContext');
+vi.mock('react-toastify', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
+    info: vi.fn(),
+  },
+}));
 
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-const mockToast = toast as jest.Mocked<typeof toast>;
+const mockUseAuth = useAuth as Mock<typeof useAuth>;
 
 // テスト用のユーザーデータを作成するヘルパー関数
 const createMockUser = (email: string): User => ({
@@ -22,13 +28,13 @@ const createMockUser = (email: string): User => ({
 });
 
 describe('Header Component', () => {
-  const mockLogout = jest.fn();
-  const mockLogin = jest.fn();
-  const mockRegister = jest.fn();
-  const mockRefreshUserInfo = jest.fn();
+  const mockLogout = vi.fn();
+  const mockLogin = vi.fn();
+  const mockRegister = vi.fn();
+  const mockRefreshUserInfo = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('ユーザーがログインしていない場合', () => {
@@ -101,8 +107,6 @@ describe('Header Component', () => {
     });
 
     test('ログアウトボタンをクリックするとログアウト処理が実行される', async () => {
-      mockToast.success = jest.fn();
-
       render(<Header />);
 
       const userButton = screen.getByRole('button', { name: /user menu button/i });
@@ -113,7 +117,7 @@ describe('Header Component', () => {
 
       await waitFor(() => {
         expect(mockLogout).toHaveBeenCalledTimes(1);
-        expect(mockToast.success).toHaveBeenCalledWith('ログアウトしました');
+        expect(toast.success).toHaveBeenCalledWith('ログアウトしました');
       });
     });
 
