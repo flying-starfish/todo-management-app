@@ -159,10 +159,11 @@ docker-compose run --rm frontend npm run test:coverage
 
 1. **backend-test**: バックエンドのテストを実行（pytest + coverage）
 2. **frontend-test**: フロントエンドのテストを実行（Jest + coverage）
-3. **backend-lint**: コードスタイルチェック（flake8, black, isort, mypy）
-4. **frontend-lint**: フロントエンドLint（準備中）
-5. **security-scan**: セキュリティスキャン（pip-audit, npm audit）
-6. **docker-build**: Dockerイメージのビルドをテスト
+3. **backend-lint**: バックエンドのコードスタイルチェック（flake8, black, isort, mypy）
+4. **frontend-lint**: フロントエンドのLint & Format（ESLint, Prettier, TypeScript）
+5. **backend-security**: バックエンドのセキュリティスキャン（pip-audit）
+6. **frontend-security**: フロントエンドのセキュリティスキャン（npm audit）
+7. **docker-build**: Dockerイメージのビルドをテスト
 
 ### ローカルでCI環境を再現
 
@@ -182,12 +183,21 @@ make security      # pip-audit
 make test-cov      # pytest + coverage
 ```
 
-#### フロントエンド
+#### フロントエンド（推奨: Makefileを使用）
 
 ```bash
 cd frontend
+
+# CI/CDと同じチェックをすべて実行
+make check-all
+
+# 個別に実行
 npm ci
-npm run test:coverage
+make format-check  # Prettierフォーマットチェック
+make lint          # ESLint
+make type-check    # TypeScript型チェック
+make security      # npm audit
+make test-cov      # Jest + coverage
 ```
 
 #### Docker

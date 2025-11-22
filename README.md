@@ -146,7 +146,7 @@ make test-cov
 ```bash
 cd frontend
 
-# すべてのチェック（フォーマット、Lint、型チェック、テスト）
+# すべてのチェック（フォーマット、Lint、型チェック、テスト、セキュリティ）
 make check-all
 
 # コード自動整形
@@ -157,6 +157,9 @@ make lint
 
 # 型チェック
 make type-check
+
+# セキュリティスキャン
+make security
 
 # テスト（カバレッジ付き）
 make test-cov
@@ -191,9 +194,12 @@ make test-cov
 - **Formatting**: Prettier
 - **Type Checking**: TypeScript compiler
 - **Testing**: Jest + React Testing Library
+- **Security**: npm audit
 
 ### CI/CD
 - **GitHub Actions**: 自動テスト・Lint・型チェック・セキュリティスキャン
+
+> **Note**: フロントエンドの脆弱性スキャンで検出される問題の多くは `react-scripts@5.0.1` の古い依存関係によるものです。これは既知の問題で、将来的にViteやNext.jsなどのモダンなビルドツールへの移行を検討する必要があります。
 
 詳細は [Backend Development Guide](backend/DEVELOPMENT.md) を参照。
 

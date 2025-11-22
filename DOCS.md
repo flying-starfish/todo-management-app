@@ -94,8 +94,11 @@ A: [backend/PYTEST_GUIDE.md](backend/PYTEST_GUIDE.md) と [TESTING.md](TESTING.m
 A: [backend/DEVELOPMENT.md](backend/DEVELOPMENT.md) の「CI/CDとの連携」セクションを参照
 
 ### Q: コミット前に何をすべき？
-A: バックエンドの変更なら `cd backend && make check-all` を実行  
-A: フロントエンドの変更なら `cd frontend && make check-all` を実行
+A: バックエンドの変更なら `cd backend && make check-all` を実行（format, lint, security, test）  
+A: フロントエンドの変更なら `cd frontend && make check-all` を実行（format, lint, type-check, test, security）
+
+### Q: セキュリティスキャンで問題が検出されたら？
+A: バックエンドは `pip-audit`、フロントエンドは `npm audit` の結果を確認。重大度に応じて対応を検討してください。フロントエンドの一部の脆弱性は `react-scripts` の古い依存関係によるもので、直接修正が困難な場合があります。
 
 ---
 

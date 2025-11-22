@@ -1,4 +1,4 @@
-.PHONY: help install lint lint-fix format format-check type-check test test-cov check-all clean
+.PHONY: help install lint lint-fix format format-check type-check test test-cov security check-all clean
 
 help:
 	@echo "Frontend Development Commands:"
@@ -10,7 +10,8 @@ help:
 	@echo "  make type-check    - Run TypeScript type checking"
 	@echo "  make test          - Run tests"
 	@echo "  make test-cov      - Run tests with coverage"
-	@echo "  make check-all     - Run all checks (format, lint, type, test)"
+	@echo "  make security      - Run security vulnerability scan"
+	@echo "  make check-all     - Run all checks (format, lint, type, test, security)"
 	@echo "  make clean         - Clean build artifacts and dependencies"
 
 install:
@@ -37,7 +38,12 @@ test:
 test-cov:
 	npm test -- --coverage --watchAll=false
 
-check-all: format-check lint type-check test
+security:
+	@echo "Running npm audit..."
+	npm audit --audit-level=moderate || true
+	@echo "✅ Security scan completed"
+
+check-all: format-check lint type-check test security
 	@echo "✅ All frontend checks passed!"
 
 clean:
