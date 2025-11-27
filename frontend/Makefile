@@ -40,7 +40,7 @@ test-cov:
 
 security:
 	@echo "Running npm audit..."
-	npm audit --audit-level=moderate || true
+	npm audit --audit-level=high || true
 	@echo "✅ Security scan completed"
 
 check-all: format-check lint type-check test security
