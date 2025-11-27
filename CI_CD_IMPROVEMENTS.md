@@ -109,10 +109,11 @@ e2e-test:
 
 #### 3. **依存関係の脆弱性対応方針**
 ✅ **完了**: Viteへの移行済み（react-scriptsの脆弱性を解消）
+✅ **完了**: セキュリティチェックの厳格化
 
-**次のアクション**:
-- [ ] npm auditのエラーレベルを`--audit-level=high`に引き上げ
-- [ ] セキュリティチェックを`continue-on-error: false`に変更（脆弱性が解消されたため）
+**実施内容**:
+- ✅ npm auditのエラーレベルを`--audit-level=high`に引き上げ
+- ✅ セキュリティチェックを`continue-on-error: false`に変更（high/critical脆弱性でビルド失敗）
 
 ### 🟡 中優先度
 
@@ -315,9 +316,9 @@ backend-test:
 ### 即座に実施すべきこと
 1. ✅ CI/CDパイプラインレビュー（完了）
 2. ✅ Vite移行（完了）
-3. 🔒 フロントエンドセキュリティチェックの厳格化
-   - npm auditを`--audit-level=high`に変更
-   - `continue-on-error: false`に変更
+3. ✅ フロントエンドセキュリティチェックの厳格化（完了）
+   - ✅ npm auditを`--audit-level=high`に変更
+   - ✅ `continue-on-error: false`に変更
 4. 📝 ブランチ保護ルールの文書化
 
 ### 短期的に実施すべきこと

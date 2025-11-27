@@ -180,7 +180,7 @@ jobs:
     - name: Run npm audit
       working-directory: ./frontend
       run: npm audit --audit-level=high
-      continue-on-error: true
+      continue-on-error: false
 
   # バックエンドのセキュリティスキャン
   backend-security:
