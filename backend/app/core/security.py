@@ -1,26 +1,76 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Tuple
 
+import bcrypt
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 # JWT設定
 SECRET_KEY = "your-secret-key-here-change-in-production"  # 本番環境では環境変数で設定
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# パスワードハッシュ化設定
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Argon2ハッシャー（新規ハッシュ用）
+ph = PasswordHasher()
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """パスワードの検証"""
-    return pwd_context.verify(plain_password, hashed_password)  # type: ignore[no-any-return]
+def _is_argon2_hash(hashed_password: str) -> bool:
+    """ハッシュがArgon2形式かどうかを判定"""
+    return hashed_password.startswith("$argon2")
+
+
+def _is_bcrypt_hash(hashed_password: str) -> bool:
+    """ハッシュがbcrypt形式かどうかを判定"""
+    return hashed_password.startswith("$2a$") or hashed_password.startswith("$2b$")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> Tuple[bool, bool]:
+    """
+    パスワードの検証
+    
+    Args:
+        plain_password: 平文パスワード
+        hashed_password: ハッシュ化されたパスワード
+    
+    Returns:
+        (verification_result, needs_rehash): 
+            - verification_result: 検証が成功したかどうか
+            - needs_rehash: 再ハッシュが必要かどうか（bcryptの場合True）
+    """
+    try:
+        if _is_argon2_hash(hashed_password):
+            # Argon2ハッシュの検証
+            ph.verify(hashed_password, plain_password)
+            # Argon2パラメータが古い場合も再ハッシュを検討できる
+            needs_rehash = ph.check_needs_rehash(hashed_password)
+            return True, needs_rehash
+        elif _is_bcrypt_hash(hashed_password):
+            # bcryptハッシュの検証（レガシー）
+            is_valid = bcrypt.checkpw(
+                plain_password.encode('utf-8'),
+                hashed_password.encode('utf-8')
+            )
+            # bcryptの場合は常に再ハッシュが必要
+            return is_valid, is_valid
+        else:
+            # 未知のハッシュ形式
+            return False, False
+    except (VerifyMismatchError, InvalidHashError, ValueError):
+        return False, False
 
 
 def get_password_hash(password: str) -> str:
-    """パスワードのハッシュ化"""
-    return pwd_context.hash(password)  # type: ignore[no-any-return]
+    """
+    パスワードのハッシュ化（Argon2を使用）
+    
+    Args:
+        password: 平文パスワード
+    
+    Returns:
+        Argon2でハッシュ化されたパスワード
+    """
+    return ph.hash(password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

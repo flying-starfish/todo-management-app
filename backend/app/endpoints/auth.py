@@ -40,7 +40,16 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     """ユーザーログイン"""
     # ユーザーの検証
     user = db.query(User).filter(User.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="メールアドレスまたはパスワードが間違っています",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # パスワード検証と再ハッシュの必要性チェック
+    is_valid, needs_rehash = verify_password(form_data.password, user.hashed_password)
+    if not is_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="メールアドレスまたはパスワードが間違っています",
@@ -52,6 +61,12 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="このアカウントは無効化されています（inactive）"
         )
+
+    # bcryptから移行する場合、Argon2で再ハッシュ化
+    if needs_rehash:
+        user.hashed_password = get_password_hash(form_data.password)
+        db.commit()
+        print(f"[INFO] Password rehashed to Argon2 for user: {user.email}")
 
     # アクセストークンの作成
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
