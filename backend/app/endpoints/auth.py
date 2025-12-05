@@ -46,7 +46,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
             detail="メールアドレスまたはパスワードが間違っています",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     # パスワード検証と再ハッシュの必要性チェック
     is_valid, needs_rehash = verify_password(form_data.password, user.hashed_password)
     if not is_valid:

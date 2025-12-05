@@ -1,6 +1,7 @@
 """
 パスワードハッシュのbcrypt→Argon2移行テスト
 """
+
 import bcrypt
 import pytest
 
@@ -14,7 +15,7 @@ class TestPasswordMigration:
     def test_hash_detection(self):
         """ハッシュ形式の検出テスト"""
         # bcryptハッシュ
-        bcrypt_hash = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode('utf-8')
+        bcrypt_hash = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode("utf-8")
         assert bcrypt_hash.startswith("$2")
 
         # Argon2ハッシュ
@@ -25,8 +26,8 @@ class TestPasswordMigration:
         """bcryptハッシュの検証テスト"""
         # bcryptでハッシュ化
         password = "test_password_123"
-        bcrypt_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        
+        bcrypt_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
         # 検証（bcryptハッシュは再ハッシュが必要と判定される）
         is_valid, needs_rehash = verify_password(password, bcrypt_hash)
         assert is_valid is True
@@ -36,7 +37,7 @@ class TestPasswordMigration:
         """Argon2ハッシュの検証テスト"""
         password = "test_password_456"
         argon2_hash = get_password_hash(password)
-        
+
         # 検証（Argon2は再ハッシュ不要）
         is_valid, needs_rehash = verify_password(password, argon2_hash)
         assert is_valid is True
@@ -45,8 +46,7 @@ class TestPasswordMigration:
     def test_new_user_uses_argon2(self, client, db_session):
         """新規ユーザー登録でArgon2が使用されることを確認"""
         response = client.post(
-            "/api/auth/register",
-            json={"email": "newuser@example.com", "password": "newpassword123"}
+            "/api/auth/register", json={"email": "newuser@example.com", "password": "newpassword123"}
         )
         assert response.status_code == 200
 
@@ -59,26 +59,19 @@ class TestPasswordMigration:
         """ログイン時にbcryptからArgon2へ移行されることを確認"""
         # 1. bcryptハッシュで既存ユーザーを作成
         password = "legacy_password_123"
-        bcrypt_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        
-        legacy_user = User(
-            email="legacy@example.com",
-            hashed_password=bcrypt_hash,
-            is_active=True
-        )
+        bcrypt_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+        legacy_user = User(email="legacy@example.com", hashed_password=bcrypt_hash, is_active=True)
         db_session.add(legacy_user)
         db_session.commit()
         db_session.refresh(legacy_user)
         user_id = legacy_user.id
-        
+
         # bcryptハッシュであることを確認
         assert legacy_user.hashed_password.startswith("$2")
 
         # 2. ログイン（移行が発生するはず）
-        response = client.post(
-            "/api/auth/login",
-            data={"username": "legacy@example.com", "password": password}
-        )
+        response = client.post("/api/auth/login", data={"username": "legacy@example.com", "password": password})
         assert response.status_code == 200
         assert "access_token" in response.json()
 
@@ -89,10 +82,7 @@ class TestPasswordMigration:
         assert migrated_user.hashed_password.startswith("$argon2")
 
         # 4. 再度ログインして、Argon2ハッシュで認証できることを確認
-        response2 = client.post(
-            "/api/auth/login",
-            data={"username": "legacy@example.com", "password": password}
-        )
+        response2 = client.post("/api/auth/login", data={"username": "legacy@example.com", "password": password})
         assert response2.status_code == 200
         assert "access_token" in response2.json()
 
@@ -100,13 +90,9 @@ class TestPasswordMigration:
         """間違ったパスワードでは移行が発生しないことを確認"""
         # 1. bcryptハッシュでユーザーを作成
         password = "correct_password"
-        bcrypt_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        
-        user = User(
-            email="nomigrate@example.com",
-            hashed_password=bcrypt_hash,
-            is_active=True
-        )
+        bcrypt_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+        user = User(email="nomigrate@example.com", hashed_password=bcrypt_hash, is_active=True)
         db_session.add(user)
         db_session.commit()
         db_session.refresh(user)
@@ -115,8 +101,7 @@ class TestPasswordMigration:
 
         # 2. 間違ったパスワードでログイン試行
         response = client.post(
-            "/api/auth/login",
-            data={"username": "nomigrate@example.com", "password": "wrong_password"}
+            "/api/auth/login", data={"username": "nomigrate@example.com", "password": "wrong_password"}
         )
         assert response.status_code == 401
 

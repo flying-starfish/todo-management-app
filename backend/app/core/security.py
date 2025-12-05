@@ -3,7 +3,7 @@ from typing import Optional, Tuple
 
 import bcrypt
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError, InvalidHashError
+from argon2.exceptions import InvalidHashError, VerifyMismatchError
 from jose import JWTError, jwt
 
 # JWT設定
@@ -28,13 +28,13 @@ def _is_bcrypt_hash(hashed_password: str) -> bool:
 def verify_password(plain_password: str, hashed_password: str) -> Tuple[bool, bool]:
     """
     パスワードの検証
-    
+
     Args:
         plain_password: 平文パスワード
         hashed_password: ハッシュ化されたパスワード
-    
+
     Returns:
-        (verification_result, needs_rehash): 
+        (verification_result, needs_rehash):
             - verification_result: 検証が成功したかどうか
             - needs_rehash: 再ハッシュが必要かどうか（bcryptの場合True）
     """
@@ -47,10 +47,7 @@ def verify_password(plain_password: str, hashed_password: str) -> Tuple[bool, bo
             return True, needs_rehash
         elif _is_bcrypt_hash(hashed_password):
             # bcryptハッシュの検証（レガシー）
-            is_valid = bcrypt.checkpw(
-                plain_password.encode('utf-8'),
-                hashed_password.encode('utf-8')
-            )
+            is_valid = bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
             # bcryptの場合は常に再ハッシュが必要
             return is_valid, is_valid
         else:
@@ -63,10 +60,10 @@ def verify_password(plain_password: str, hashed_password: str) -> Tuple[bool, bo
 def get_password_hash(password: str) -> str:
     """
     パスワードのハッシュ化（Argon2を使用）
-    
+
     Args:
         password: 平文パスワード
-    
+
     Returns:
         Argon2でハッシュ化されたパスワード
     """
