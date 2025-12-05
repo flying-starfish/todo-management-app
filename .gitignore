@@ -28,6 +28,8 @@ backend/.env.local
 backend/.env.development
 backend/.env.production
 backend/venv/  # バックエンドの仮想環境を無視
+backend/*.db  # テスト用SQLiteデータベース
+backend/test_*.db  # テスト用データベース
 
 # 共通
 .DS_Store
