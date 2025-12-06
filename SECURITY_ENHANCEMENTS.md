@@ -19,13 +19,13 @@
 - [ ] Secure Cookie属性の設定
 
 #### 2. **セキュリティヘッダーの不足**
-現状: 基本的なセキュリティヘッダーが未設定
-- [ ] Content-Security-Policy (CSP)
-- [ ] X-Content-Type-Options
-- [ ] X-Frame-Options
-- [ ] X-XSS-Protection
-- [ ] Referrer-Policy
-- [ ] Permissions-Policy
+現状: ✅ **実装完了（2025-11-27）**
+- [x] Content-Security-Policy (CSP) ✅
+- [x] X-Content-Type-Options ✅
+- [x] X-Frame-Options ✅
+- [x] X-XSS-Protection ✅
+- [x] Referrer-Policy ✅
+- [x] Permissions-Policy ✅
 
 #### 3. **レート制限の未実装**
 現状: API呼び出しの制限なし（DoS/ブルートフォース攻撃に脆弱）
@@ -311,13 +311,16 @@ class UserCreate(BaseModel):
 
 ### Phase 1: 基礎セキュリティ強化
 - [x] **セキュリティヘッダーの実装** ✅ 完了（2025-11-27）
-  - X-Content-Type-Options: nosniff
-  - X-Frame-Options: DENY
-  - X-XSS-Protection: 1; mode=block
-  - Strict-Transport-Security: max-age=31536000; includeSubDomains
-  - Referrer-Policy: strict-origin-when-cross-origin
-  - Permissions-Policy: geolocation=(), microphone=(), camera=()
-  - Content-Security-Policy: Vite/React対応設定
+  - [x] X-Content-Type-Options: nosniff
+  - [x] X-Frame-Options: DENY
+  - [x] X-XSS-Protection: 1; mode=block
+  - [x] Strict-Transport-Security: 環境別設定（開発/本番）
+  - [x] Referrer-Policy: strict-origin-when-cross-origin
+  - [x] Permissions-Policy: geolocation=(), microphone=(), camera=()
+  - [x] Content-Security-Policy: 環境別設定
+    - 開発環境: Vite HMR対応（unsafe-inline, unsafe-eval, WebSocket許可）
+    - 本番環境: 厳格な設定（unsafe-*, WebSocket削除、追加保護）
+  - [x] 環境変数による動的切り替え機能（`app/core/config.py`）
 - [ ] レート制限の実装（slowapi導入）
 - [ ] パスワードポリシーの強化
 - [ ] セキュリティログの実装
@@ -361,16 +364,20 @@ redis==5.0.1
 ## 📊 セキュリティ評価指標
 
 ### 現在のスコア
-| カテゴリ | 現状 | 目標 |
-|---------|------|------|
-| 認証・認可 | ⭐⭐⭐☆☆ | ⭐⭐⭐⭐⭐ |
-| 入力検証 | ⭐⭐⭐☆☆ | ⭐⭐⭐⭐⭐ |
-| 通信セキュリティ | ⭐⭐☆☆☆ | ⭐⭐⭐⭐⭐ |
-| レート制限 | ⭐☆☆☆☆ | ⭐⭐⭐⭐⭐ |
-| ログ・監視 | ⭐⭐☆☆☆ | ⭐⭐⭐⭐☆ |
-| データ保護 | ⭐⭐⭐☆☆ | ⭐⭐⭐⭐☆ |
+| カテゴリ | 現状 | 目標 | 進捗 |
+|---------|------|------|------|
+| 認証・認可 | ⭐⭐⭐☆☆ | ⭐⭐⭐⭐⭐ | - |
+| 入力検証 | ⭐⭐⭐☆☆ | ⭐⭐⭐⭐⭐ | - |
+| 通信セキュリティ | ⭐⭐⭐⭐☆ | ⭐⭐⭐⭐⭐ | ✅ 改善（セキュリティヘッダー実装） |
+| レート制限 | ⭐☆☆☆☆ | ⭐⭐⭐⭐⭐ | - |
+| ログ・監視 | ⭐⭐☆☆☆ | ⭐⭐⭐⭐☆ | - |
+| データ保護 | ⭐⭐⭐☆☆ | ⭐⭐⭐⭐☆ | - |
 
-**総合評価**: ⭐⭐⭐☆☆ (2.5/5.0) → 目標: ⭐⭐⭐⭐⭐ (4.5/5.0)
+**総合評価**: ⭐⭐⭐☆☆ (3.0/5.0) → 目標: ⭐⭐⭐⭐⭐ (4.5/5.0)
+
+**最近の改善**:
+- 2025-11-27: セキュリティヘッダー全面実装
+  - 通信セキュリティ: 2.0 → 4.0 に向上
 
 ## 🔗 参考資料
 
@@ -394,14 +401,37 @@ redis==5.0.1
 
 ## 🎬 次のアクション
 
+### ✅ 完了したタスク
+1. ~~**セキュリティヘッダーの実装**~~ ✅ 完了（2025-11-27）
+   - 全セキュリティヘッダー実装
+   - 環境別設定（開発/本番）
+   - 動的CSP切り替え機能
+
+### 🔜 次に実施すべきタスク
+
 新しいチャットで以下の順序で実施してください：
 
-1. **セキュリティヘッダーの実装**（30分）
-2. **レート制限の実装**（1時間）
-3. **パスワードポリシーの強化**（30分）
-4. **セキュリティログの実装**（1時間）
-5. **入力検証の強化**（1時間）
+1. **レート制限の実装**（1時間）← 次はこれ
+   - slowapiのインストールと設定
+   - ログインエンドポイントへの適用（5回/分）
+   - API全体への適用（100回/分）
+   - テスト実装
 
-**推定時間**: 合計4時間
+2. **パスワードポリシーの強化**（30分）
+   - パスワード強度検証関数の実装
+   - 一般的なパスワードのブロック
+   - エラーメッセージの改善
+
+3. **セキュリティログの実装**（1時間）
+   - security_logger.pyの作成
+   - ログインイベントの記録
+   - レート制限超過の記録
+
+4. **入力検証の強化**（1時間）
+   - Pydanticバリデータの追加
+   - スキーマの厳格化
+   - サニタイゼーション実装
+
+**推定時間**: 合計3.5時間
 
 各実装後にテストを実行し、CI/CDが正常に動作することを確認してください。
