@@ -70,6 +70,11 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
+**データベース設定**:
+- 開発環境ではSQLiteを使用します（`backend/db/todos.db`に自動作成）
+- データベースファイルはGit管理外です
+- 初回起動時に自動的にテーブルが作成されます
+
 詳細は [Backend Development Guide](backend/DEVELOPMENT.md) を参照。
 
 ### 3. Set up Frontend
@@ -137,8 +142,14 @@ make test-cov
 
 **詳細情報:**
 - API documentation: http://localhost:8000/docs (Swagger UI)
-- Database: SQLite (`backend/db/todos.db`)
+- Database: SQLite (`backend/db/todos.db`) - 開発環境専用
 - [開発ガイド](backend/DEVELOPMENT.md) - Lint、テスト、コード品質管理
+
+**データベースに関する注意事項:**
+- 開発環境: SQLite（`backend/db/todos.db`）
+- 本番環境: PostgreSQL（Docker Composeで管理）
+- データベースファイル（`.db`）はGit管理対象外です
+- 開発データをリセットする場合: `rm backend/db/todos.db` 後、サーバー再起動
 
 ### Frontend Development
 
@@ -222,13 +233,40 @@ npm run test:coverage       # カバレッジ付き
 
 ## 🐳 Docker
 
+### 開発環境（Docker）
+
 Docker Composeで簡単に起動できます：
 
 ```bash
+# 開発環境を起動
 docker-compose up
+
+# データベース含めて完全リセット
+docker-compose down -v
+docker-compose up --build
 ```
 
-詳細は [DOCKER.md](DOCKER.md) を参照。
+**データベース:**
+- 開発環境: SQLite（コンテナ内でのみ使用）
+- データはボリュームに永続化されません（コンテナ削除時に消失）
+
+### 本番環境シミュレート（Docker）
+
+本番に近い環境をローカルで体験できます：
+
+```bash
+# 本番環境を起動
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+**データベース:**
+- PostgreSQL 15（本番相当）
+- データはDockerボリュームに永続化（コンテナ再起動してもデータ保持）
+- Redis（キャッシュ・セッション管理）も含む
+
+詳細は以下を参照：
+- 開発環境: [DOCKER.md](DOCKER.md)
+- 本番環境シミュレート: [LOCAL_PRODUCTION_SETUP.md](LOCAL_PRODUCTION_SETUP.md)
 
 ## 🤝 Contributing
 
