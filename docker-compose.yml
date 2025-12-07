@@ -9,7 +9,6 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
-      - backend-db:/app/db
     environment:
       - DATABASE_URL=sqlite:///./db/todos.db
     networks:
@@ -41,6 +40,3 @@ services:
 networks:
   todo-network:
     driver: bridge
-
-volumes:
-  backend-db:
