@@ -4,9 +4,10 @@
 
 [phases.setup]
 nixPkgs = ["python311"]
-# プリビルドスクリプトを実行してDockerfileを削除
+# Dockerfileを削除してNixpacksを強制的に使用
 cmds = [
-  "bash .railway-prebuild.sh || echo 'Prebuild script not found'"
+  "rm -f Dockerfile Dockerfile.prod || echo 'Dockerfiles already removed'",
+  "echo '✅ Dockerfiles removed, using Nixpacks'"
 ]
 
 [phases.install]
