@@ -14,28 +14,28 @@ venv/
 # フロントエンド関連
 frontend/node_modules/
 frontend/build/
-frontend/.env                        # 開発環境（個人設定）
-frontend/.env.local                  # 個人設定（全環境共通）
-frontend/.env.development            # 開発環境（チーム共有の場合は除外）
-frontend/.env.development.local      # 開発環境の個人設定
-frontend/.env.test                   # テスト環境
-frontend/.env.test.local             # テスト環境の個人設定
-# frontend/.env.production           # 本番環境（公開情報のみなのでGit管理）
-frontend/.env.production.local       # 本番環境の個人設定
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.development.local
+frontend/.env.test
+frontend/.env.test.local
+# frontend/.env.production (公開情報のみなのでGit管理)
+frontend/.env.production.local
 
 # バックエンド関連
 backend/__pycache__/
 backend/*.pyc
 backend/*.pyo
-backend/.env                         # 開発環境（機密情報）
-backend/.env.local                   # 個人設定（全環境共通）
-backend/.env.development             # 開発環境
-backend/.env.development.local       # 開発環境の個人設定
-backend/.env.production              # 本番環境（機密情報）
-backend/.env.production.local        # 本番環境の個人設定
-backend/venv/                        # バックエンドの仮想環境を無視
-backend/*.db                         # テスト用SQLiteデータベース
-backend/test_*.db                    # テスト用データベース
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.development.local
+backend/.env.production
+backend/.env.production.local
+backend/venv/
+backend/*.db
+backend/test_*.db
 
 # 共通
 .DS_Store
