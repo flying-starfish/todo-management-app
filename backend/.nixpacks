@@ -1,2 +1,0 @@
-# このファイルの存在により、RailwayはDockerfileを無視してNixpacksを使用します
-# 詳細: https://nixpacks.com/docs/configuration/file
