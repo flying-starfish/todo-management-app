@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker  # 新しいインポート先
 
 # 環境変数からDATABASE_URLを取得、デフォルトはローカル用
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./todos.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./db/todos.db")
 
 # SQLiteの場合のみcheck_same_threadを設定
 connect_args = {}
