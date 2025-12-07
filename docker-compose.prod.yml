@@ -40,7 +40,7 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: ../docker/backend/Dockerfile.prod
+      dockerfile: docker/Dockerfile.prod
     container_name: todo-backend-prod
     env_file:
       - ./backend/.env.production
