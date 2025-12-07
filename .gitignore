@@ -37,6 +37,10 @@ backend/venv/
 backend/*.db
 backend/test_*.db
 
+# データベースファイル（SQLite）
+*.db
+!*.db.example
+
 # 共通
 .DS_Store
 coverage/
