@@ -74,12 +74,13 @@ def read_root():
 async def health_check():
     """ヘルスチェックエンドポイント（Railway用）"""
     from datetime import datetime
+    from sqlalchemy import text
     
     try:
         # データベース接続確認
         from app.core.database import SessionLocal
         db = SessionLocal()
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db.close()
         
         return {
