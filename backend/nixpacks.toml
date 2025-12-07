@@ -1,13 +1,19 @@
 # Nixpacks設定ファイル
+# RailwayでのビルドにNixpacksを強制使用
+# 通常はDockerfileを使用し、Railway上ではこの設定を使用
 
 [phases.setup]
-nixPkgs = ["python311", "pip"]
+nixPkgs = ["python311"]
+# プリビルドスクリプトを実行してDockerfileを削除
+cmds = [
+  "bash .railway-prebuild.sh || echo 'Prebuild script not found'"
+]
 
 [phases.install]
-cmds = ["pip install -r requirements.txt"]
+cmds = ["pip install --no-cache-dir -r requirements.txt"]
 
 [phases.build]
-cmds = ["echo 'Build complete'"]
+cmds = ["echo '✅ Build phase complete'"]
 
 [start]
 cmd = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
