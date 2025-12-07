@@ -20,10 +20,24 @@ class Settings:
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
 
     # CORS設定
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://frontend:3000",
-    ]
+    def get_cors_origins(self) -> List[str]:
+        """環境に応じたCORS設定を取得"""
+        # 環境変数から追加のオリジンを取得
+        frontend_url = os.getenv("FRONTEND_URL", "")
+        
+        origins = [
+            "http://localhost:3000",
+            "http://frontend:3000",
+        ]
+        
+        # 本番環境のフロントエンドURLを追加
+        if frontend_url:
+            origins.append(frontend_url)
+            # HTTPSの場合、HTTPも追加（リダイレクト対応）
+            if frontend_url.startswith("https://"):
+                origins.append(frontend_url.replace("https://", "http://"))
+        
+        return origins
 
     @property
     def is_production(self) -> bool:

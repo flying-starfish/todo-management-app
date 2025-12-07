@@ -6,6 +6,11 @@ from sqlalchemy.orm import declarative_base, sessionmaker  # 新しいインポ�
 # 環境変数からDATABASE_URLを取得、デフォルトはローカル用
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./db/todos.db")
 
+# RailwayのPostgreSQLはpostgres://で始まるが、SQLAlchemyはpostgresql://が必要
+# https://help.heroku.com/ZKNTJQSK/why-is-sqlalchemy-1-4-x-not-connecting-to-heroku-postgres
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # SQLiteの場合のみcheck_same_threadを設定
 connect_args = {}
 if "sqlite" in DATABASE_URL:

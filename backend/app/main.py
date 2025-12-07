@@ -58,10 +58,7 @@ async def log_requests(request: Request, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # ローカル開発環境
-        "http://frontend:3000",  # Docker環境
-    ],
+    allow_origins=settings.get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,3 +68,29 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"message": "Hello, FastAPI!"}
+
+
+@app.get("/api/health")
+async def health_check():
+    """ヘルスチェックエンドポイント（Railway用）"""
+    from datetime import datetime
+    
+    try:
+        # データベース接続確認
+        from app.core.database import SessionLocal
+        db = SessionLocal()
+        db.execute("SELECT 1")
+        db.close()
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.utcnow().isoformat(),
+            "environment": settings.ENVIRONMENT,
+            "version": "1.0.0"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
