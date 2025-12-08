@@ -1,27 +1,42 @@
-# 本番環境用Dockerfile
-FROM python:3.11-slim
+# ---- Build stage ----
+FROM python:3.11-slim AS build
 
-# 作業ディレクトリを設定
 WORKDIR /app
 
-# システムパッケージの更新と必要なパッケージのインストール
-RUN apt-get update && apt-get install -y \
+# ビルドに必要なパッケージをインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    postgresql-client \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # 依存関係ファイルをコピー
 COPY requirements.txt .
 
-# 依存関係をインストール（キャッシュを使用しない、本番用パッケージ追加）
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir gunicorn psycopg2-binary
+# 依存関係をインストール（本番用パッケージ追加）
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir gunicorn psycopg2
+
+# ---- Runtime stage ----
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 実行時に必要な最小限のパッケージをインストール
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# ビルドステージからPython環境をコピー
+COPY --from=build /usr/local /usr/local
 
 # アプリケーションコードをコピー
 COPY . .
 
 # 非rootユーザーを作成して実行
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+RUN useradd --system --create-home appuser \
+    && chown -R appuser:appuser /app
 USER appuser
 
 # ポート8000を公開
@@ -29,7 +44,7 @@ EXPOSE 8000
 
 # ヘルスチェック
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1
 
 # Gunicorn + Uvicornで本番起動
 CMD ["gunicorn", "app.main:app", \

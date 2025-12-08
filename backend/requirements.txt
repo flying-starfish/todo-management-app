@@ -9,7 +9,8 @@ bcrypt==4.0.1
 argon2-cffi==23.1.0
 python-multipart==0.0.9
 
-# PostgreSQL Support (本番環境用)
+# PostgreSQL Support
+# 注意: ローカル開発ではpsycopg2-binary、本番環境ではDockerfileでpsycopg2をビルド
 psycopg2-binary==2.9.9
 
 # Testing Dependencies
