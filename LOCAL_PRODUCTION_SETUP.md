@@ -209,62 +209,7 @@ CMD ["gunicorn", "app.main:app", \
 | オートリロード | ✅ あり | ❌ なし |
 | ユーザー | root | appuser（非root） |
 
-### 2.2 フロントエンド用Dockerfile
-
-**`frontend/Dockerfile.prod`** を作成:
-
-```dockerfile
-# マルチステージビルド: ビルドステージ
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# package.jsonとpackage-lock.jsonをコピー
-COPY package*.json ./
-
-# 依存関係をインストール（本番用のみ）
-RUN npm ci --only=production --ignore-scripts
-
-# 開発用依存関係も一時的にインストール（ビルドに必要）
-RUN npm install
-
-# アプリケーションコードをコピー
-COPY . .
-
-# 環境変数を設定してビルド
-ARG VITE_API_URL=http://localhost/api
-ENV VITE_API_URL=${VITE_API_URL}
-
-# 本番ビルドを実行
-RUN npm run build
-
-# 本番ステージ: Nginxで静的ファイルを配信
-FROM nginx:alpine
-
-# ビルド成果物をNginxのドキュメントルートにコピー
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# ポート80を公開
-EXPOSE 80
-
-# ヘルスチェック
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
-
-# Nginxをフォアグラウンドで起動
-CMD ["nginx", "-g", "daemon off;"]
-```
-
-**💡 学習ポイント**：
-- **マルチステージビルド**: 最終イメージを小さく保つテクニック
-- **ビルドステージ**: Node.js環境でビルド（約1GB）
-- **実行ステージ**: Nginx Alpineで配信（約50MB）
-- 最終イメージにNode.jsが含まれないため軽量・安全
-
-**イメージサイズ比較**:
-- 開発環境（node:18）: 約1.1GB
-- 本番環境（nginx:alpine）: 約50MB
-- **削減率**: 約95%！
+**📝 注意**: 現在の構成では、フロントエンド用の `Dockerfile.prod` は使用しません。フロントエンドはローカルでビルドし、その成果物をNginxコンテナにマウントする方式を採用しています。フロントエンドをコンテナイメージ化する方法については、このドキュメントの最後の「付録」セクションを参照してください。
 
 ## 🐳 Step 3: Docker Compose本番用設定
 
@@ -909,6 +854,114 @@ docker volume prune
 2. 🔄 **CI/CD改善** - 自動デプロイパイプライン
 3. 🌍 **マルチリージョン展開** - 複数データセンター
 4. 📈 **スケーリング戦略** - Kubernetes、ロードバランサー
+
+## 📎 付録: フロントエンドのコンテナイメージ化（オプション）
+
+現在のローカル本番環境では、フロントエンドをローカルでビルドし、その成果物をNginxにマウントする方式を採用しています。しかし、以下のような場合にはフロントエンドもDockerイメージ化することが有効です：
+
+### 使用シナリオ
+
+1. **CI/CDパイプライン**: イメージをビルドしてレジストリにプッシュ
+2. **クラウドデプロイ**: Railway、Render、AWS等にデプロイ
+3. **完全なコンテナ化**: すべてのサービスをイメージとして管理
+4. **マルチステージ展開**: 複数環境への統一的なデプロイ
+
+### frontend/Dockerfile.prod
+
+将来的に必要になった場合のために、以下の `frontend/Dockerfile.prod` を用意してあります：
+
+```dockerfile
+# マルチステージビルド: ビルドステージ
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# package.jsonとpackage-lock.jsonをコピー
+COPY package*.json ./
+
+# 依存関係をインストール（本番用のみ）
+RUN npm ci --only=production --ignore-scripts
+
+# 開発用依存関係も一時的にインストール（ビルドに必要）
+RUN npm install
+
+# アプリケーションコードをコピー
+COPY . .
+
+# 環境変数を設定してビルド
+ARG VITE_API_URL=http://localhost/api
+ENV VITE_API_URL=${VITE_API_URL}
+
+# 本番ビルドを実行
+RUN npm run build
+
+# 本番ステージ: Nginxで静的ファイルを配信
+FROM nginx:alpine
+
+# ビルド成果物をNginxのドキュメントルートにコピー
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# ポート80を公開
+EXPOSE 80
+
+# ヘルスチェック
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+
+# Nginxをフォアグラウンドで起動
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### 使用方法
+
+この Dockerfile を使用する場合、`docker-compose.prod.yml` を以下のように変更します：
+
+```yaml
+  # フロントエンド（コンテナイメージ化する場合）
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: http://localhost
+    container_name: todo-frontend-prod
+    networks:
+      - todo-network-prod
+    restart: unless-stopped
+
+  # Nginx設定を変更
+  nginx:
+    image: nginx:alpine
+    container_name: todo-nginx-prod
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # ボリュームマウントではなく、frontendコンテナから取得
+    volumes_from:
+      - frontend
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - todo-network-prod
+    restart: unless-stopped
+```
+
+### メリット・デメリット
+
+**メリット**：
+- ✅ イメージとして完結（ポータビリティ向上）
+- ✅ CI/CDパイプラインで扱いやすい
+- ✅ クラウドへのデプロイが簡単
+- ✅ ビルド環境を統一可能
+
+**デメリット**：
+- ❌ ビルド時間が長くなる（毎回フルビルド）
+- ❌ イメージサイズが大きくなる可能性
+- ❌ ローカル開発では複雑になる
+
+**💡 推奨**：ローカル開発では現在の方式（ローカルビルド + マウント）を使用し、クラウドデプロイ時のみこの Dockerfile を使用するのが実用的です。
 
 ## 🔗 関連ドキュメント
 

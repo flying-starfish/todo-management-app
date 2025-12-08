@@ -577,6 +577,9 @@ services:
       - redis
     restart: always
 
+  # フロントエンド（代替方式1: コンテナイメージ化）
+  # 注意: ローカル本番環境では使用していません
+  # クラウドデプロイやCI/CDパイプライン用の設定例です
   frontend:
     build:
       context: ./frontend
@@ -593,6 +596,9 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/ssl:/etc/nginx/ssl
+      # 代替方式1: frontendコンテナから取得（volumes_from使用）
+      # 代替方式2: ローカルビルド成果物をマウント（下記コメント参照）
+      # - ./frontend/build:/usr/share/nginx/html:ro
       - frontend_build:/usr/share/nginx/html
     depends_on:
       - backend
@@ -602,6 +608,11 @@ services:
 volumes:
   postgres_data:
   frontend_build:
+
+# 📝 注意: ローカル本番環境シミュレート（docker-compose.prod.yml）では
+# フロントエンドサービスを使用せず、ローカルでビルドした成果物を
+# Nginxに直接マウントする方式を採用しています。
+# frontend/Dockerfile.prodはクラウドデプロイ時に使用します。
 ```
 
 #### 本番用 Dockerfile (Backend)
@@ -628,6 +639,8 @@ CMD ["gunicorn", "app.main:app", \
 
 #### 本番用 Dockerfile (Frontend)
 
+**📝 注意**: この Dockerfile は、フロントエンドをコンテナイメージとして完結させる場合（クラウドデプロイ、CI/CDパイプライン等）に使用します。ローカル本番環境シミュレート（`docker-compose.prod.yml`）では使用していません。
+
 **`frontend/Dockerfile.prod`**:
 ```dockerfile
 FROM node:18-alpine AS builder
@@ -643,6 +656,14 @@ COPY --from=builder /app/build /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
+
+**使用シナリオ**：
+- Railway、Render等のクラウドプラットフォームへのデプロイ
+- Docker Hubへのイメージプッシュ
+- CI/CDパイプラインでの自動ビルド・デプロイ
+- マルチステージ環境への統一的な展開
+
+詳細は `LOCAL_PRODUCTION_SETUP.md` の付録セクションを参照してください。
 
 ### 5.3 オプション3: クラウドPaaS
 
