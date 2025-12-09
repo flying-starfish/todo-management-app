@@ -15,25 +15,36 @@ git push origin main
 
 1. https://railway.app/ にアクセス
 2. GitHubアカウントでログイン
-3. 無料枠: 月$5クレジット + 500時間
+3. 無料枠: 月$5クレジット
 
 ### 3. バックエンドのデプロイ
 
 1. 「New Project」→「Deploy from GitHub repo」
 2. `todo-management-app` リポジトリを選択
-3. **Settings** で以下を設定:
-   - **Root Directory**: `backend`
+3. **重要: Settings で Root Directory を設定**
+   - **Settings** タブ → **Source** セクション
+   - **Root Directory**: `backend` と入力
+   - これを設定しないとビルドが失敗します
 4. **Variables** で環境変数を追加:
    ```bash
    ENVIRONMENT=production
    SECRET_KEY=<python3 -c "import secrets; print(secrets.token_urlsafe(64))" で生成>
    ```
+   例: `5WRsTLXOPtuFV3_gdzWVeIwPH30guTebFbUp7ZK3CzHwnbufOABrlDZbcIsMuiOqVM1sOIjM81D26MVejTLmrQ`
 
 ### 4. PostgreSQLの追加
 
 1. 「New」→「Database」→「Add PostgreSQL」
-2. `DATABASE_URL` が自動的にバックエンドに追加される
-3. テーブルは自動作成される（`init_db()` が実行される）
+2. PostgreSQLサービスが作成される（サービス名は「Postgres」など）
+3. **重要: DATABASE_URLの設定**
+   - PostgreSQLサービスの「Variables」タブまたは「Connect」タブを開く
+   - `DATABASE_URL`の値をコピー（公開ホスト名を使用）
+   - 例: `postgresql://postgres:password@monorail.proxy.rlwy.net:12345/railway`
+   - **注意**: `postgres.railway.internal`ではなく、`*.proxy.rlwy.net`形式のホストを使用
+4. **バックエンドサービスの Variables タブで設定**
+   - `DATABASE_URL=<コピーしたURL>`を追加
+   - 変数参照（`${{Postgres.DATABASE_URL}}`）がうまく動作しない場合は直接URLをコピー
+5. テーブルは自動作成される（`init_db()` が実行される）
 
 ### 5. フロントエンドのデプロイ（Vercel推奨）
 
@@ -69,8 +80,9 @@ curl https://your-backend-url.railway.app/api/health
 # 期待される応答
 {
   "status": "healthy",
-  "timestamp": "2024-12-07T12:00:00",
-  "environment": "production"
+  "timestamp": "2025-12-09T12:00:00.000000",
+  "environment": "production",
+  "version": "1.0.0"
 }
 ```
 
@@ -97,19 +109,33 @@ curl https://your-backend-url.railway.app/api/health
 
 デプロイに必要なファイルは既に準備済み：
 
-- ✅ `railway.toml` - Railway設定
-- ✅ `Procfile` - 起動コマンド
+- ✅ `backend/railway.toml` - Railway設定（Root Directory内に配置）
+- ✅ `backend/Procfile` - 起動コマンド
+- ✅ `backend/nixpacks.toml` - Nixpacksビルド設定（venv使用）
 - ✅ `backend/requirements.txt` - psycopg2-binary追加済み
-- ✅ `backend/app/core/database.py` - PostgreSQL対応
-- ✅ `backend/app/main.py` - ヘルスチェック追加
+- ✅ `backend/app/core/database.py` - PostgreSQL対応（URL形式変換含む）
+- ✅ `backend/app/main.py` - ヘルスチェック追加（SQLAlchemy text()使用）
+- ✅ `backend/docker/` - Dockerfileは別ディレクトリに配置（Nixpacks優先）
 
 ---
 
 ## 🎯 次のステップ
 
-1. カスタムドメインの設定
-2. 継続的デプロイ（GitHub push で自動デプロイ）
-3. 監視とログの確認
-4. パフォーマンス最適化
+1. フロントエンドのデプロイ（Vercel推奨）
+2. カスタムドメインの設定
+3. 継続的デプロイ（GitHub push で自動デプロイ）
+4. 監視とログの確認
+
+## ⚠️ 重要な注意事項
+
+### 課金について
+- サービスが**起動している間は課金対象**です
+- 無料枠: 月$5クレジット（約7-10日で消費）
+- 使わない時はサービスまたはプロジェクトを削除してください
+
+### サービスの停止方法
+1. **個別削除**: 各サービスの Settings → 最下部の「Delete Service」
+2. **プロジェクト削除**: プロジェクト Settings → 「Delete Project」
+3. 後日再開する場合は、同じ手順で再作成できます（設定はコードで保存済み）
 
 Happy Deploying! 🚀
