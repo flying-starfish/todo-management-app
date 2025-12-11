@@ -45,11 +45,16 @@ export const Login = ({ onSwitchToRegister }: LoginProps) => {
       navigate(from, { replace: true });
     } catch (error: any) {
       console.error('ログインエラー:', error);
+      console.error('エラーレスポンス:', error.response);
+      console.error('エラーステータス:', error.response?.status);
+      console.error('エラーデータ:', error.response?.data);
 
       if (error.response?.status === 401) {
         toast.error('メールアドレスまたはパスワードが間違っています');
       } else if (error.response?.data?.detail) {
         toast.error(error.response.data.detail);
+      } else if (error.message) {
+        toast.error(`ログインに失敗しました: ${error.message}`);
       } else {
         toast.error('ログインに失敗しました');
       }
