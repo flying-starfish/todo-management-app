@@ -255,6 +255,20 @@ select:hover {
   border-color: #888; /* ホバー時に少し濃いグレーの枠線 */
 }
 
+/* 日付入力フィールドのスタイル */
+input[type='date'] {
+  width: 100%; /* 幅を100%に */
+  max-width: 400px; /* 最大幅を制限 */
+  padding: 10px 15px; /* 内側の余白を設定 */
+  font-size: 16px; /* テキストサイズを設定 */
+  border: 1px solid #ccc; /* 薄いグレーの枠線 */
+  border-radius: 8px; /* 角を丸める */
+  outline: none; /* デフォルトのフォーカス枠を削除 */
+  transition:
+    border-color 0.3s,
+    box-shadow 0.3s; /* フォーカス時のアニメーション */
+}
+
 /* ドラッグ&ドロップ用のスタイル */
 .drag-handle {
   cursor: grab;

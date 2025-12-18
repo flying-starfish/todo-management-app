@@ -29,6 +29,7 @@ interface Todo {
   completed: boolean;
   position: number;
   priority: number;
+  due_date?: string;
 }
 
 interface TodoListProps {
@@ -126,6 +127,7 @@ const SortableTodoItem = ({
         <p>{todo.description}</p>
         <p>Status: {todo.completed ? 'Completed' : 'Incomplete'}</p>
         <p>Priority: {todo.priority === 0 ? 'High' : todo.priority === 1 ? 'Medium' : 'Low'}</p>
+        {todo.due_date && <p>Due Date: {new Date(todo.due_date).toLocaleDateString()}</p>}
       </div>
       <div className="todo-actions">
         <button className="edit-btn" onClick={() => onEdit(todo.id)} title="Edit todo details">
@@ -144,7 +146,7 @@ const SortableTodoItem = ({
 
 const TodoList = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [newTodo, setNewTodo] = useState({ title: '', description: '', priority: 1 });
+  const [newTodo, setNewTodo] = useState({ title: '', description: '', priority: 1, due_date: '' });
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'incomplete'>('all');
@@ -282,11 +284,12 @@ const TodoList = () => {
         description: newTodo.description,
         completed: false,
         priority: newTodo.priority,
+        due_date: newTodo.due_date,
       })
       .then((response) => {
         const data = response.data;
         setTodos([...todos, data]); // Add the new todo to the list
-        setNewTodo({ title: '', description: '', priority: 1 }); // Reset the form
+        setNewTodo({ title: '', description: '', priority: 1, due_date: '' }); // Reset the form
         setError(null); // エラーをリセット
 
         // トースト通知を表示
@@ -420,6 +423,7 @@ const TodoList = () => {
       completed: updatedFields.completed ?? todoToUpdate.completed,
       position: todoToUpdate.position, // positionは保持
       priority: updatedFields.priority ?? todoToUpdate.priority,
+      due_date: updatedFields.due_date ?? todoToUpdate.due_date,
     };
 
     apiClient
@@ -448,6 +452,7 @@ const TodoList = () => {
       completed: todoToUpdate.completed,
       position: todoToUpdate.position,
       priority: todoToUpdate.priority,
+      due_date: todoToUpdate.due_date,
     };
 
     apiClient
@@ -560,6 +565,13 @@ const TodoList = () => {
           <option value={1}>Medium</option>
           <option value={2}>Low</option>
         </select>
+        {/* 期限日フィールドを追加 */}
+        <input
+          type="date"
+          name="due_date"
+          value={newTodo.due_date}
+          onChange={(e) => setNewTodo({ ...newTodo, due_date: e.target.value })}
+        />
         <button type="submit">Add Todo</button>
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>

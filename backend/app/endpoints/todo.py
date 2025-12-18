@@ -10,6 +10,8 @@ from app.models.todo import Todo as TodoModel
 from app.models.todo import TodoResponse
 from app.models.user import User
 
+from datetime import datetime
+
 router = APIRouter()
 
 
@@ -19,6 +21,7 @@ class TodoCreate(BaseModel):
     completed: bool = False
     position: Optional[int] = None
     priority: Optional[int] = 1  # デフォルト優先度を中（1）に設定
+    due_date: Optional[datetime] = None  # 期限日
 
 
 @router.get("/todos", response_model=dict)
