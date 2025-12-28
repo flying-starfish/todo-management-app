@@ -1,0 +1,147 @@
+.ws-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  margin-bottom: 16px;
+}
+
+.ws-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ws-panel__title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #111827;
+}
+
+.ws-panel__hint {
+  margin: 0 0 12px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.ws-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+}
+
+.ws-status__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #9ca3af;
+}
+
+.ws-status.connected .ws-status__dot {
+  background: #10b981;
+}
+
+.ws-status.connecting .ws-status__dot {
+  background: #f59e0b;
+}
+
+.ws-status.error .ws-status__dot {
+  background: #ef4444;
+}
+
+.ws-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.ws-panel__label {
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+}
+
+.ws-panel__input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.ws-panel__input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.ws-panel__input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.ws-panel__button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ws-panel__button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.ws-panel__feedback {
+  min-height: 18px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.ws-panel__error {
+  color: #b91c1c;
+  margin-left: 8px;
+}
+
+.ws-panel__messages {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+}
+
+.ws-panel__messages-header {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.ws-panel__message {
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: #f9fafb;
+  font-size: 14px;
+}
+
+.ws-panel__message--empty {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.ws-panel__last {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #4b5563;
+}

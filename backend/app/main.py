@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.core.database import init_db
 from app.endpoints.auth import router as auth_router
 from app.endpoints.todo import router as todo_router
+from app.endpoints.websocket import router as websocket_router
 
 app = FastAPI()
 
@@ -14,6 +15,7 @@ init_db()
 
 app.include_router(todo_router, prefix="/api", tags=["todos"])
 app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
+app.include_router(websocket_router, tags=["websocket"])
 
 
 # セキュリティヘッダーのミドルウェア
