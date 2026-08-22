@@ -1,66 +1,57 @@
-# Frontend (React + TypeScript + Vite)
+# フロントエンド開発ガイド
 
-⚡ このプロジェクトは [Vite](https://vitejs.dev/) を使用しています（Create React Appから移行済み）
+このフロントエンドは React + TypeScript + Vite 構成です。
 
-## 🚀 Available Scripts
+## 開発コマンド
 
-### `npm run dev`
-開発サーバーを起動します。
-- URL: http://localhost:3000
-- 高速なホットモジュールリプレースメント（HMR）
+```bash
+# 開発サーバー起動
+npm run dev
 
-### `npm test`
-Vitestをウォッチモードで起動します。
+# テスト（ウォッチ）
+npm test
 
-### `npm run test:coverage`
-カバレッジレポート付きでテストを実行します。
+# テスト（カバレッジ）
+npm run test:coverage
 
-### `npm run build`
-本番用ビルドを `build/` フォルダに生成します。
+# 型チェック
+npm run type-check
 
-### `npm run preview`
-本番ビルドをローカルでプレビューします。
+# 本番ビルド
+npm run build
 
-### `npm run type-check`
-TypeScriptの型チェックを実行します（ビルドなし）。
+# 型チェック後にビルド
+npm run build:check
 
-### `npm run build:check`
-型チェック後にビルドを実行します。
+# 本番ビルドをローカル確認
+npm run preview
+```
 
-## 📦 主な依存関係
+開発サーバー URL: http://localhost:3000
 
-- **React 19** - UIライブラリ
-- **TypeScript** - 型安全性
-- **Vite** - 次世代ビルドツール
-- **React Router** - ルーティング
-- **Axios** - HTTP通信
-- **@dnd-kit** - ドラッグ&ドロップ
-- **react-toastify** - トースト通知
+## 環境変数
 
-## 🧪 Testing
-
-- **Vitest** - 高速なテストランナー
-- **Testing Library** - コンポーネントテスト
-
-## 🔧 環境変数
-
-環境変数は`.env`ファイルで定義し、`VITE_`プレフィックスを使用します。
+環境変数は frontend 直下の `.env` に定義し、`VITE_` プレフィックスを付けます。
 
 ```env
 VITE_API_URL=http://localhost:8000
 ```
 
-コード内での使用:
+利用例:
+
 ```typescript
 const apiUrl = import.meta.env.VITE_API_URL;
 ```
 
-## 📖 移行ガイド
+## 品質チェック
 
-CRAからViteへの移行詳細は [VITE_MIGRATION.md](./VITE_MIGRATION.md) を参照してください。
+```bash
+# 整形・Lint・型チェック・テスト・セキュリティチェック
+make check-all
+```
 
-## 📚 Learn More
+## 関連ドキュメント
 
-- [Vite documentation](https://vitejs.dev/)
-- [Vitest documentation](https://vitest.dev/)
-- [React documentation](https://react.dev/)
+- 移行履歴: [VITE_MIGRATION.md](./VITE_MIGRATION.md)
+- テスト全体: [../docs/testing.md](../docs/testing.md)
+- ルート案内: [../DOCS.md](../DOCS.md)

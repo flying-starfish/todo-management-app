@@ -93,12 +93,12 @@ def test_with_fixture(sample_data):
 @pytest.fixture
 def database_connection():
     """テスト前後の処理"""
-    # Setup: テスト前の準備
+    # 準備: テスト前の初期化
     db = create_database()
     
     yield db  # テストに渡す
     
-    # Teardown: テスト後のクリーンアップ
+    # 後処理: テスト後のクリーンアップ
     db.close()
 
 def test_database(database_connection):
@@ -366,4 +366,4 @@ docker-compose run --rm backend pytest --cov=app --cov-report=html
 
 - [pytest公式ドキュメント](https://docs.pytest.org/)
 - [pytest-cov](https://pytest-cov.readthedocs.io/)
-- [FastAPI Testing](https://fastapi.tiangolo.com/tutorial/testing/)
+- [FastAPI テストガイド](https://fastapi.tiangolo.com/tutorial/testing/)

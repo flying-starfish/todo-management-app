@@ -252,7 +252,7 @@ disallow_untyped_defs = false  # 型なし関数を許可
 
 ---
 
-## � CI/CDとの連携
+## 🔗 CI/CDとの連携
 
 GitHub Actionsで以下のチェックが自動実行されます：
 
@@ -270,20 +270,20 @@ make check-all  # すべてのチェックを実行
 
 ---
 
-## �📚 参考資料
+## 📚 参考資料
 
-- [Black Documentation](https://black.readthedocs.io/)
-- [flake8 Documentation](https://flake8.pycqa.org/)
-- [isort Documentation](https://pycqa.github.io/isort/)
-- [mypy Documentation](https://mypy.readthedocs.io/)
-- [pytest Documentation](https://docs.pytest.org/)
-- [pre-commit Documentation](https://pre-commit.com/)
+- [Black 公式ドキュメント](https://black.readthedocs.io/)
+- [flake8 公式ドキュメント](https://flake8.pycqa.org/)
+- [isort 公式ドキュメント](https://pycqa.github.io/isort/)
+- [mypy 公式ドキュメント](https://mypy.readthedocs.io/)
+- [pytest 公式ドキュメント](https://docs.pytest.org/)
+- [pre-commit 公式ドキュメント](https://pre-commit.com/)
 
 ---
 
 ## 🔗 関連ドキュメント
 
 - [プロジェクトREADME](../README.md) - プロジェクト全体の概要
-- [テストガイド](../TESTING.md) - テスト戦略とベストプラクティス
+- [テストガイド](../docs/testing.md) - テスト戦略とベストプラクティス
 - [Pytestガイド](PYTEST_GUIDE.md) - Pytestの詳細な使い方
-- [Dockerガイド](../DOCKER.md) - Docker環境での開発
+- [Dockerガイド](../docs/deployment/docker-development.md) - Docker環境での開発
