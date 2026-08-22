@@ -1,11 +1,13 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+import json
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_active_user
+from app.core.connection_manager import connection_manager
 from app.models.todo import Todo as TodoModel
 from app.models.todo import TodoResponse
 from app.models.user import User
@@ -80,7 +82,12 @@ def get_todos(
 
 
 @router.post("/todos", response_model=TodoResponse)
-def create_todo(todo: TodoCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def create_todo(
+    todo: TodoCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    background_tasks: BackgroundTasks = None,
+):
     """
     新しい ToDo を作成するエンドポイント
     """
@@ -98,7 +105,15 @@ def create_todo(todo: TodoCreate, db: Session = Depends(get_db), current_user: U
     db.add(db_todo)
     db.commit()
     db.refresh(db_todo)
-    return TodoResponse.from_orm(db_todo)  # Pydantic モデルに変換して返す
+
+    todo_response = TodoResponse.from_orm(db_todo)
+
+    # Todo 作成イベントを同一ユーザーの接続先に通知
+    if background_tasks is not None:
+        message = json.dumps({"event": "todo_created", "data": todo_response.model_dump(mode="json")})
+        background_tasks.add_task(connection_manager.broadcast_to_user, current_user.email, message)
+
+    return todo_response  # Pydantic モデルに変換して返す
 
 
 class TodoReorderRequest(BaseModel):
@@ -201,7 +216,11 @@ def reorder_todos(
 
 @router.put("/todos/{id}", response_model=TodoResponse)
 def update_todo(
-    id: int, todo: TodoCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)
+    id: int,
+    todo: TodoCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    background_tasks: BackgroundTasks = None,
 ):
     """
     ToDo を更新するエンドポイント
@@ -217,11 +236,24 @@ def update_todo(
 
     db.commit()
     db.refresh(db_todo)
-    return TodoResponse.from_orm(db_todo)  # Pydantic モデルに変換して返す
+
+    todo_response = TodoResponse.from_orm(db_todo)
+
+    # Todo 更新イベントを同一ユーザーの接続先に通知
+    if background_tasks is not None:
+        message = json.dumps({"event": "todo_updated", "data": todo_response.model_dump(mode="json")})
+        background_tasks.add_task(connection_manager.broadcast_to_user, current_user.email, message)
+
+    return todo_response  # Pydantic モデルに変換して返す
 
 
 @router.delete("/todos/{id}", response_model=TodoResponse)
-def delete_todo(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+def delete_todo(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    background_tasks: BackgroundTasks = None,
+):
     """
     ToDo を削除するエンドポイント
     """
@@ -229,6 +261,15 @@ def delete_todo(id: int, db: Session = Depends(get_db), current_user: User = Dep
     if not db_todo:
         raise HTTPException(status_code=404, detail="Todo not found")
 
+    # 事前にレスポンスデータを構築しておく
+    todo_response = TodoResponse.from_orm(db_todo)
+
     db.delete(db_todo)
     db.commit()
-    return TodoResponse.from_orm(db_todo)  # Pydantic モデルに変換して返す
+
+    # Todo 削除イベントを同一ユーザーの接続先に通知
+    if background_tasks is not None:
+        message = json.dumps({"event": "todo_deleted", "data": todo_response.model_dump(mode="json")})
+        background_tasks.add_task(connection_manager.broadcast_to_user, current_user.email, message)
+
+    return todo_response  # Pydantic モデルに変換して返す
