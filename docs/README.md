@@ -12,6 +12,7 @@
 
 - [learning/fastapi-request-lifecycle.md](learning/fastapi-request-lifecycle.md)
 - [learning/authentication-security/README.md](learning/authentication-security/README.md)
+- [learning/fastapi-design-principles-for-architects.md](learning/fastapi-design-principles-for-architects.md)
 
 ### アーキテクチャ
 
