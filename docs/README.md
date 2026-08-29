@@ -11,6 +11,7 @@
 ### 学習
 
 - [learning/fastapi-request-lifecycle.md](learning/fastapi-request-lifecycle.md)
+- [learning/authentication-security/README.md](learning/authentication-security/README.md)
 
 ### アーキテクチャ
 
