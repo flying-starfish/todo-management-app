@@ -615,5 +615,519 @@ FastAPI を読み解くときの基本は、次の 1 文に集約できます。
 
 ---
 
-この資料は、上の理解を整理して次の段階に進むための教材として使えます。
-次に進むときは、今度は「認証」「DB」「WebSocket」のような横断的な仕組みを、同じ視点で読み解くとさらに理解が深まります。
+## 24. さらに深く見る：FastAPI は「ASGI アプリ」である
+
+ここまでの理解をもう一段踏み込むと、FastAPI はただの関数呼び出しではなく、ASGI というイベント駆動のインターフェースの上で動いていることが見えてきます。
+
+ASGI は、Web サーバーとアプリケーションの間で、次のようなイベントをやり取りする仕組みです。
+
+```text
+Client
+  ↓
+uvicorn / ASGI server
+  ↓
+FastAPI app
+  ↓
+request handler
+  ↓
+response
+```
+
+重要なのは、FastAPI が「HTTP リクエストごとに新しい OS スレッドを作る」わけではなく、
+
+- 1 つのプロセス内でイベントループが動いている
+- I/O 待ちのときは別の処理へ切り替える
+- その結果として複数リクエストを効率的に扱える
+
+という点です。
+
+つまり、`async def` は「ブロックしないで待てる」という意味で、DB や HTTP 通信のような待ち時間がある処理に向いています。
+
+このプロジェクトでは、エンドポイントの実装は `def` で書かれているものもありますが、そこでも FastAPI は依存注入や Pydantic の処理を裏で管理しています。実際に「その関数が同期処理か非同期処理か」で全部が決まるわけではなく、FastAPI のライブラリ側が適切に扱ってくれます。
+
+---
+
+## 25. ミドルウェアはどこで動くのか
+
+[backend/app/main.py](../../backend/app/main.py) には次のようなコードがあります。
+
+```python
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+```
+
+これは、リクエストが実際の endpoint に到達する前後で処理を挟む仕組みです。
+
+### 実行順序のイメージ
+
+```text
+リクエスト受信
+  ↓
+middleware A
+  ↓
+middleware B
+  ↓
+endpoint
+  ↓
+middleware B の後処理
+  ↓
+middleware A の後処理
+  ↓
+レスポンス返却
+```
+
+このプロジェクトでは、
+
+- セキュリティヘッダーの追加
+- ログ出力
+- CORS 設定
+
+がすべてミドルウェアとして挿入されています。
+
+これは「エンドポイントごとにロジックを毎回書く」のではなく、共通の横断的処理を一箇所で管理できる設計です。
+
+### 重要な視点
+
+ミドルウェアは、
+
+- リクエストの前処理
+- 認可・監査ログ
+- 例外の吸収
+- HTTP ヘッダーの付与
+- レスポンスの加工
+
+に使われます。
+
+エンドポイント関数だけを見ると本当の処理の全体像が見えにくくなるため、FastAPI のコードを読むときは、`main.py` のミドルウェアとエンドポイントの両方を見るのが重要です。
+
+---
+
+## 26. `Depends()` は単なる引数ではない
+
+依存注入は、FastAPI で非常に重要な概念です。
+
+たとえば [backend/app/core/dependencies.py](../../backend/app/core/dependencies.py) には次のようなコードがあります。
+
+```python
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    email = verify_token(token)
+    user = db.query(User).filter(User.email == email).first()
+    return user
+```
+
+これは「この関数が必要とする依存関係」を宣言しているだけでなく、FastAPI がそれらを自動的に解決して実行順を管理する仕組みです。
+
+### 実際の呼び出し関係
+
+```text
+get_todos()
+  → Depends(get_current_active_user)
+      → Depends(get_current_user)
+          → Depends(oauth2_scheme)
+          → Depends(get_db)
+```
+
+このように、依存はネストできます。
+
+- `oauth2_scheme` は Authorization ヘッダーから token を抽出
+- `get_db` は DB セッションを作成
+- `get_current_user` は token を検証してユーザーをロード
+- `get_current_active_user` はユーザーが有効か確認
+
+この chain が、認証済みユーザーの取得の本体です。
+
+### なぜ強力なのか
+
+依存注入により、以下のような共通ロジックを一箇所に集約できます。
+
+- 認証
+- DB セッション管理
+- パラメータバリデーション
+- 監査ログ
+- 権限チェック
+
+この設計により、各 endpoint は「何をするか」に集中でき、重複コードを減らせます。
+
+---
+
+## 27. `response_model` と `BaseModel` は何をしているのか
+
+Pydantic は FastAPI の中核です。
+
+例えば、Todo の作成時に `TodoCreate` を受け取り、`TodoResponse` を返す構造があります。
+
+```python
+class TodoCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    completed: bool = False
+```
+
+```python
+@router.post("/todos", response_model=TodoResponse)
+def create_todo(...):
+    ...
+```
+
+このとき、FastAPI は次の 2 つを行っています。
+
+1. リクエスト JSON を `TodoCreate` に変換しようとする
+2. 変換できない場合は 422 を返す
+
+さらに、`response_model` により、返り値を `TodoResponse` の形に整形します。
+
+つまり、
+
+- 入力は「安全な型」に変換される
+- 出力は「一定のスキーマ」に整形される
+
+ということです。
+
+これが FastAPI で API の信頼性が高い理由の一つです。
+
+### 重要な考え方
+
+Pydantic は「型の宣言」を実行時に検証する仕組みです。
+
+```python
+title: str
+completed: bool
+priority: Optional[int]
+```
+
+この宣言があることで、
+
+- `title` が文字列でない
+- `completed` が bool でない
+- `priority` が null や文字列になっている
+
+といった問題を、アプリケーションのロジックへ入る前に弾けます。
+
+---
+
+## 28. なぜ `UploadFile` のような型が必要なのか
+
+画像や PDF などのファイルを扱う場合は、通常の JSON とは違うやり方が必要です。
+
+```python
+from fastapi import UploadFile, File
+
+@app.post("/upload")
+async def upload_image(file: UploadFile = File(...)):
+    return {"filename": file.filename}
+```
+
+ここでは、
+
+- `Content-Type: multipart/form-data`
+- 1 つのファイルを受け取る
+- そのファイルをストリームとして扱う
+
+という前提が必要です。
+
+### 典型的な違い
+
+- JSON body: `{"title": "買い物"}` のような構造
+- form-data: ファイル本体とメタデータが別に存在する
+- `UploadFile`: ファイルを安全に読み込み、保存や検証の対象にできる
+
+この違いがあるので、FastAPI は `BaseModel` だけではなく `UploadFile = File(...)` のような入力形式を用意しています。
+
+ファイルをそのまま文字列 JSON で扱うと、画像データが壊れたり、巨大なペイロードになったりするためです。
+
+---
+
+## 29. リクエストオブジェクトは「本体」ではなく「入口」
+
+FastAPI のエンドポイント関数は、通常はデータを型付きで受け取りますが、本当に重要なのは、その前に `Request` オブジェクトがどこにあるかです。
+
+```python
+from fastapi import Request
+
+@app.get("/debug")
+async def debug(request: Request):
+    print(request.method)
+    print(request.url)
+    print(request.headers)
+    return {"ok": True}
+```
+
+`Request` は、
+
+- HTTP メソッド
+- URL
+- headers
+- cookies
+- client info
+- body
+
+などの情報を持つ「リクエストの入口」です。
+
+FastAPI は内部でこの `Request` を正規化し、
+
+- path params
+- query params
+- body
+- file
+- headers
+
+といった情報を抽出して、関数に渡します。
+
+つまり、エンドポイント関数の引数は、`Request` の中から必要な情報を取り出す「窓」のような役割を持っています。
+
+---
+
+## 30. 認証と DB 依存は、実際には連鎖した依存関数として動く
+
+このプロジェクトでは、認証の仕組みが依存の連鎖として構成されています。
+
+[backend/app/core/dependencies.py](../../backend/app/core/dependencies.py) のコードを見てみると、次の順番で処理されています。
+
+```python
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    email = verify_token(token)
+    user = db.query(User).filter(User.email == email).first()
+    return user
+```
+
+そして、
+
+```python
+def get_current_active_user(current_user: User = Depends(get_current_user)):
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="無効なユーザーです")
+    return current_user
+```
+
+このように、
+
+- Authorization header があるか確認
+- JWT を検証
+- DB からユーザーを検索
+- そのユーザーが有効か確認
+- 最終的に endpoint に渡す
+
+という流れになります。
+
+### 実務的に重要なこと
+
+この設計では、各 endpoint は「認証済みユーザーを使う」ことを宣言するだけで済みます。
+
+```python
+def get_todos(
+    ...,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+```
+
+こうすることで、
+
+- 認証ロジックの重複を減らす
+- 例外を一箇所で統一する
+- セキュリティ責務を共通化する
+
+といった利点があります。
+
+---
+
+## 31. `init_db()` は何をしているのか
+
+[backend/app/core/database.py](../../backend/app/core/database.py) にある `init_db()` は、アプリ起動時に呼ばれるセットアップ関数です。
+
+```python
+def init_db():
+    from app.models.todo import Todo
+    from app.models.user import User
+
+    Base.metadata.create_all(bind=engine)
+```
+
+これは、
+
+- `Todo` モデルをインポート
+- `User` モデルをインポート
+- SQLAlchemy の metadata に登録されているテーブルを生成
+
+という処理です。
+
+### なぜ必要か
+
+DB にテーブルがなければ、`SELECT` や `INSERT` の対象がありません。
+
+この処理は、Docker やローカル開発環境でアプリを起動したときに、最低限必要なテーブル構造を作る役割を持っています。
+
+### 実はこれも「起動時」と「リクエスト時」の分離
+
+- 起動時: `engine`, `SessionLocal`, `Base`, `init_db()`
+- リクエスト時: `get_db()` で DB セッションを作る
+
+この対比が、FastAPI アプリの設計を理解する上で特に重要です。
+
+---
+
+## 32. `SessionLocal` はなぜ request ごとに作るのか
+
+[backend/app/core/database.py](../../backend/app/core/database.py) には次がありました。
+
+```python
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+```
+
+この `SessionLocal` は、SQLAlchemy の「DB との会話用オブジェクト」を作るための factory です。
+
+```python
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+```
+
+ここで重要なのは、
+
+- DB セッションは「使い捨て」であること
+- 1 リクエストにつき 1 セッションを作ることが多いこと
+- 最後に必ず閉じること
+
+です。
+
+### なぜ閉じる必要があるのか
+
+セッションを閉じないと、
+
+- 接続が残る
+- 予期しない状態が保持される
+- 競合が起きる
+- メモリや DB 接続数が枯渇する
+
+といった問題が起こりえます。
+
+FastAPI の `yield` を使った依存関数は、リクエストの終わりで `finally` が実行される構造になっているので、リソースの解放が自然に行われます。
+
+---
+
+## 33. どこまでが「定義」なのか、どこからが「実行」なのか
+
+このテーマは、初学者が最初に躓きやすい部分です。
+
+```python
+@app.get("/todos")
+def get_todos():
+    return {"ok": True}
+```
+
+このコードを見たとき、
+
+- `@app.get("/todos")` は「定義」
+- `def get_todos():` は「関数の定義」
+- 実際に `/todos` にアクセスしたときに初めて処理が実行される
+
+という区別が必要です。
+
+### 典型的な誤解
+
+「python ファイルを起動したら、全部の関数が毎回呼ばれるのでは？」
+
+これは違います。
+
+- 関数本体は定義された瞬間に動かない
+- ルート関数はその名前がアプリに登録されるだけ
+- 実際に要求が来た後に呼ばれる
+
+### 重要な見方
+
+アプリを起動するときにやることと、リクエストが来たときにやることは分離されています。
+
+- 起動時: `FastAPI()`、ルーティング登録、DB 初期化
+- リクエスト時: ルーティングされた関数の実行、`Depends` の解決、DB 参照、レスポンス生成
+
+この分離の意識が、FastAPI を読む上で最も重要です。
+
+---
+
+## 34. 実際のコードを読むときの黄金ルール
+
+FastAPI のコードを読むときは、次の順で読むと読みやすくなります。
+
+### 1. 入口を読む
+
+- [backend/app/main.py](../../backend/app/main.py)
+- ここで `FastAPI()` が作られ、router が登録される
+
+### 2. 依存を読む
+
+- [backend/app/core/database.py](../../backend/app/core/database.py)
+- [backend/app/core/dependencies.py](../../backend/app/core/dependencies.py)
+- ここで DB セッションや認証の仕組みが定義される
+
+### 3. endpoint を読む
+
+- [backend/app/endpoints/todo.py](../../backend/app/endpoints/todo.py)
+- [backend/app/endpoints/auth.py](../../backend/app/endpoints/auth.py)
+- ここで具体的な API ロジックが書かれる
+
+### 4. モデルを読む
+
+- [backend/app/models](../../backend/app/models)
+- ここでデータ構造が定義される
+
+### 5. 実行順を想像する
+
+- リクエストが来る
+- 何を受け取るか
+- 認証や DB が動くか
+- どんなレスポンスが返るか
+
+この順番で見ると、FastAPI の構造が頭の中で自然に繋がります。
+
+---
+
+## 35. 一番重要な理解のまとめ
+
+FastAPI は、ただ「URL と関数を結びつける仕組み」ではなく、次のような層を持つアーキテクチャです。
+
+- HTTP 受信層
+- ミドルウェア層
+- ルーティング層
+- 依存注入層
+- バリデーション層
+- DB 層
+- レスポンス整形層
+
+この層がすべて連携して、1 回の API リクエストが成立します。
+
+つまり、たった 1 つの endpoint 関数を見ても、その背後にある仕組みがすべて存在していることがわかります。
+
+---
+
+## 36. 最後に
+
+この資料は、FastAPI の「表面的な書き方」ではなく、
+
+- どこで何が起きるのか
+- なぜその順番で呼ばれるのか
+- なぜ `Depends()` が必要なのか
+- なぜ `BaseModel` が必要なのか
+- なぜ DB セッションを request ごとに作るのか
+
+という本質を理解するためのものです。
+
+この視点を持つと、単純な API のコードが、実は「リクエスト処理の設計図」そのものとして見えてきます。
+
+次の学習では、
+
+- JWT 認証の中身
+- SQLAlchemy の transaction と query
+- WebSocket の接続とイベント送信
+- フロントエンドからの API 呼び出しフロー
+
+を同じ観点で読み解くと、さらに理解が深まります。
+
+---
+
+このドキュメントは、初学者が「何が起こっているのか」を見えるようにするための教材であり、さらに上級者が「設計の意図」を読み解くための資料としても使えるように整理しています。
