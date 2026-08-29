@@ -8,6 +8,10 @@
 
 ## カテゴリ
 
+### 学習
+
+- [learning/fastapi-request-lifecycle.md](learning/fastapi-request-lifecycle.md)
+
 ### アーキテクチャ
 
 - [architecture.md](architecture.md)

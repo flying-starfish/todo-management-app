@@ -431,5 +431,189 @@ FastAPI の設計は次のように理解するとわかりやすいです。
 
 ---
 
-このドキュメントは、「なぜこのコードがそのタイミングで動くのか」を理解するための教材として整理しました。
-今後、同じ観点で他のコードを読むときにも、この流れで読むと理解しやすくなります。
+## 17. 実際のリクエストがどのように流れるかを、今のプロジェクトで見てみる
+
+ここからは、今回のコードを例にして、1 回のリクエストがどの順番で通るかを整理します。
+
+### 例: Todo 一覧を取得する
+
+[backend/app/endpoints/todo.py](../../backend/app/endpoints/todo.py) には、次のようなエンドポイントがあります。
+
+```python
+@router.get("/todos", response_model=dict)
+def get_todos(
+    page: int = Query(1, ge=1),
+    limit: int = Query(5, ge=1),
+    search: Optional[str] = None,
+    status: Optional[str] = None,
+    priority: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+```
+
+この関数が呼ばれる流れは、概念的には次の通りです。
+
+```text
+ブラウザ or API Client
+      ↓
+GET /api/todos?page=1&limit=5
+      ↓
+FastAPI が URL を照合
+      ↓
+get_todos 関数を選択
+      ↓
+FastAPI が Depends(get_db) を実行
+      ↓
+DB セッションを作成
+      ↓
+query parameter を読み取る
+      ↓
+SQLAlchemy で DB を検索
+      ↓
+結果を dict に整形して返す
+      ↓
+HTTP レスポンスとして返却
+```
+
+ここで重要なのは、
+
+- 関数の引数 `page`, `limit`, `search` は URL から読み込まれる
+- `db` は `Depends(get_db)` によって自動的に注入される
+- `current_user` は JWT 認証の依存関数によって自動的に引かれる
+
+という点です。
+
+---
+
+## 18. 1 回のリクエストにおける3つの視点
+
+リクエストを理解するときは、次の 3 つを分けて見るとわかりやすいです。
+
+### 1. 誰が起動するのか
+
+- `uvicorn` や FastAPI のアプリが待機している
+- リクエストが来ると、その URL に対応する関数が起動する
+
+### 2. 何を受け取るのか
+
+- URL の path
+- query parameter
+- JSON body
+- headers
+- cookies
+- file
+
+### 3. 何を返すのか
+
+- dict
+- JSON
+- Pydantic モデル
+- HTTP status code
+- error response
+
+この 3 つを意識すると、関数の定義が「何のためのものか」が見えやすくなります。
+
+---
+
+## 19. 目で見るとわかりやすい全体図
+
+```text
+Client
+  │
+  │ HTTP request
+  ▼
+FastAPI app
+  │
+  ├─ URL で path を照合
+  ├─ path parameter / query parameter を読込
+  ├─ request body を Pydantic で検証
+  ├─ Depends(...) を実行
+  │    ├─ get_db() で Session を作成
+  │    └─ get_current_active_user() で認証確認
+  │
+  ├─ DB へアクセス
+  ├─ 処理結果を返却データに整形
+  └─ HTTP response を返す
+```
+
+この図で大切なのは、
+
+- URL の照合
+- データの解析
+- DB へのアクセス
+- レスポンスの整形
+
+が、順番に行われるということです。
+
+---
+
+## 20. よくある誤解と正しい見方
+
+### 誤解 1: main.py 全体が毎回実行される
+
+違います。
+
+- `main.py` のトップレベルコードは起動時に実行される
+- ルート関数だけがリクエスト時に毎回動く
+
+### 誤解 2: 引数が何でも受け取れる
+
+違います。
+
+- `todo: TodoCreate` は JSON body を期待する
+- `page: int = Query(...)` は query parameter を期待する
+- `file: UploadFile = File(...)` はファイルを期待する
+
+### 誤解 3: DB 接続コードがリクエストごとにファイル自体を読む
+
+違います。
+
+- DB の接続設定は起動時に作る
+- 実際のセッションはリクエストごとに作る
+
+---
+
+## 21. 学習時に見るべき観点チェックリスト
+
+コードを読むときは、次の順番で見ると理解しやすくなります。
+
+1. これは起動時か、リクエスト時か
+2. どの URL と結びついているか
+3. 引数は何を期待しているか
+4. どこで DB を使っているか
+5. どこで認証や依存注入が入るか
+6. 最後に何を返しているか
+
+この順番で見ると、FastAPI の構造がかなり見えやすくなります。
+
+---
+
+## 22. 最後に：この資料の狙い
+
+この資料は、単に「コードの意味」を説明するためだけではなく、
+
+- どのコードが起動時に動くのか
+- どのコードがリクエストごとに動くのか
+- どこで URL と関数が結びつくのか
+- どこで入力チェックされるのか
+- どこで DB や認証が介在するのか
+
+を、実際のプロジェクトコードを通して学ぶためのものです。
+
+この視点が身につくと、FastAPI だけでなく、他の Web フレームワークも読みやすくなります。
+
+---
+
+## 23. まとめ
+
+FastAPI を読み解くときの基本は、次の 1 文に集約できます。
+
+> 「起動時にアプリを組み立て、リクエスト時に URL に対応する関数を呼び、関数の引数がそのリクエストの形を定義する」
+
+これがこの資料の中心です。
+
+---
+
+この資料は、上の理解を整理して次の段階に進むための教材として使えます。
+次に進むときは、今度は「認証」「DB」「WebSocket」のような横断的な仕組みを、同じ視点で読み解くとさらに理解が深まります。
